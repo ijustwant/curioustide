@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  channels     Channel[]
+}
+
+model Channel {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  channelKey String   @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  events     Event[]
+}
+
+model Event {
+  id                 String    @id @default(uuid())
+  channelId          String
+  channel            Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  name               String
+  status             String    @default("idle")
+  startedAt          DateTime?
+  endedAt            DateTime?
+  livekitRoomName    String?
+  recordingPath      String?
+  recordingExpiresAt DateTime?
+  allowDownload      Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+}

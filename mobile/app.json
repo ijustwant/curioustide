@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "CuriousTide",
+    "slug": "curioustide",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.curioustide.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.curioustide.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "CuriousTide trenger mikrofon for å sende lyd.",
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "plugins": [
+      [
+        "expo-av",
+        { "microphonePermission": "CuriousTide trenger mikrofon for å sende lyd." }
+      ]
+    ]
+  }
+}
