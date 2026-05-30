@@ -7,7 +7,7 @@ rtc:
   use_external_ip: false
 
 keys:
-  devkey: devsecret1234567890abcdef
+  devkey: devsecret1234567890abcdef12345678
 
 redis:
   address: redis:6379

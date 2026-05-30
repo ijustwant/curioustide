@@ -1,7 +1,7 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 COPY . .
 ARG VITE_API_URL=/api
 ARG VITE_LIVEKIT_URL=ws://localhost:7880

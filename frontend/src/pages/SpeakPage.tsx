@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   Room,
   RoomEvent,
-  LocalParticipant,
   createLocalAudioTrack,
 } from 'livekit-client'
 import { api } from '../lib/api'
@@ -30,7 +29,7 @@ export default function SpeakPage() {
     setStatus('connecting')
     setError('')
     try {
-      const { token: lvToken, roomName, channelKey: key } = await api.getChannelToken(
+      const { token: lvToken, channelKey: key } = await api.getChannelToken(
         token, channelId, 'speaker'
       )
       setChannelKey(key)

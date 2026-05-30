@@ -1,4 +1,4 @@
-import { EgressClient, EncodedFileOutput, EncodedFileType } from 'livekit-server-sdk'
+import { EgressClient, EncodedFileOutput, EncodedFileType, S3Upload } from 'livekit-server-sdk'
 import type { PrismaClient } from '@prisma/client'
 import { deleteObject } from './minio'
 
@@ -14,16 +14,18 @@ export async function startRecording(roomName: string, eventId: string): Promise
   const egress = getEgressClient()
   const objectPath = `events/${eventId}/recording.ogg`
 
+  const s3 = new S3Upload({
+    accessKey: process.env.MINIO_ACCESS_KEY ?? 'ctminio',
+    secret: process.env.MINIO_SECRET_KEY ?? 'ctminiopassword',
+    bucket: process.env.MINIO_BUCKET ?? 'recordings',
+    endpoint: `http://${process.env.MINIO_ENDPOINT ?? 'minio'}:${process.env.MINIO_PORT ?? 9000}`,
+    forcePathStyle: true,
+  })
+
   const output = new EncodedFileOutput({
     fileType: EncodedFileType.OGG,
     filepath: objectPath,
-    s3: {
-      accessKey: process.env.MINIO_ACCESS_KEY ?? 'ctminio',
-      secret: process.env.MINIO_SECRET_KEY ?? 'ctminiopassword',
-      bucket: process.env.MINIO_BUCKET ?? 'recordings',
-      endpoint: `http://${process.env.MINIO_ENDPOINT ?? 'minio'}:${process.env.MINIO_PORT ?? 9000}`,
-      forcePathStyle: true,
-    },
+    output: { case: 's3', value: s3 },
   })
 
   await egress.startRoomCompositeEgress(roomName, { file: output })
