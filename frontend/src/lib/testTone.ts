@@ -12,7 +12,7 @@ export function startTestTone(): void {
     osc.connect(gain)
     gain.connect(ctx.destination)
     osc.type = 'sine'
-    osc.frequency.value = 2000
+    osc.frequency.value = 1200
     gain.gain.setValueAtTime(0.4, ctx.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
     osc.start(ctx.currentTime)

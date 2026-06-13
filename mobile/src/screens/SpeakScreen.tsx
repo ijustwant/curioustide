@@ -11,7 +11,7 @@ import { startTestTone, stopTestTone } from '../lib/testTone'
 type Props = StackScreenProps<RootStackParamList, 'Speak'>
 type Status = 'idle' | 'connecting' | 'live' | 'error'
 
-const LIVEKIT_URL = __DEV__ ? 'ws://10.0.2.2:7880' : 'wss://your-domain.com/livekit'
+const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
 
 export default function SpeakScreen({ route, navigation }: Props) {
   const { channelId, channelName, channelKey } = route.params

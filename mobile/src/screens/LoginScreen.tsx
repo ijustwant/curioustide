@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
 } from 'react-native'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
@@ -32,7 +32,8 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
       <Text style={s.logo}>CuriousTide</Text>
       <Text style={s.sub}>Live lyd for arrangementer</Text>
 
@@ -84,12 +85,14 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#020617' },
+  root: { flex: 1, backgroundColor: '#020617' },
+  scroll: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   logo: { fontSize: 32, fontWeight: 'bold', color: '#38bdf8', marginBottom: 4 },
   sub: { fontSize: 14, color: '#64748b', marginBottom: 32 },
   tabs: { flexDirection: 'row', backgroundColor: '#1e293b', borderRadius: 14, padding: 4, marginBottom: 20, width: '100%' },

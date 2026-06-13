@@ -42,7 +42,7 @@ function generateToneWavBase64(freqHz: number, durationMs: number): string {
 }
 
 async function writeToneFile(): Promise<string> {
-  const b64 = generateToneWavBase64(2000, 300)
+  const b64 = generateToneWavBase64(1200, 300)
   const path = FileSystem.cacheDirectory + 'ct_tone.wav'
   await FileSystem.writeAsStringAsync(path, b64, { encoding: FileSystem.EncodingType.Base64 })
   return path

@@ -7,6 +7,7 @@ dist/
 mobile/android/
 mobile/ios/
 mobile/.expo/
+mobile/expo-build/
 
 # Docker volumes
 postgres_data/

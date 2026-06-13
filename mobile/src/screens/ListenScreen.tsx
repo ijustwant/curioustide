@@ -9,7 +9,7 @@ import { useAuthStore } from '../store/auth'
 type Props = StackScreenProps<RootStackParamList, 'Listen'>
 type Status = 'idle' | 'connecting' | 'listening'
 
-const LIVEKIT_URL = __DEV__ ? 'ws://10.0.2.2:7880' : 'wss://your-domain.com/livekit'
+const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
 
 export default function ListenScreen({ navigation }: Props) {
   const token = useAuthStore((s) => s.token)
