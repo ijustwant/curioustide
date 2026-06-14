@@ -23,7 +23,10 @@ export default function LoginScreen() {
         mode === 'login'
           ? await api.login(email.trim(), password)
           : await api.register(email.trim(), password, name.trim() || undefined)
+      console.log('[Auth] token mottatt:', result.token ? result.token.slice(0, 20) + '...' : 'MANGLER')
+      console.log('[Auth] user:', JSON.stringify(result.user))
       setAuth(result.token, result.user)
+      console.log('[Auth] setAuth kalt, navigasjon bør skje nå')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -75,7 +78,11 @@ export default function LoginScreen() {
           secureTextEntry
         />
 
-        {error ? <Text style={s.error}>{error}</Text> : null}
+        {error ? (
+          <ScrollView style={s.errorBox} nestedScrollEnabled>
+            <Text style={s.error}>{error}</Text>
+          </ScrollView>
+        ) : null}
 
         <TouchableOpacity style={s.btn} onPress={submit} disabled={loading} activeOpacity={0.8}>
           {loading ? (
@@ -105,7 +112,8 @@ const s = StyleSheet.create({
     backgroundColor: '#1e293b', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
     color: '#f1f5f9', fontSize: 16, borderWidth: 1, borderColor: '#334155',
   },
-  error: { color: '#f87171', backgroundColor: '#450a0a', padding: 12, borderRadius: 10, textAlign: 'center' },
+  errorBox: { maxHeight: 120, backgroundColor: '#450a0a', borderRadius: 10 },
+  error: { color: '#f87171', padding: 12, fontFamily: 'monospace', fontSize: 12 },
   btn: { backgroundColor: '#0284c7', borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
 })

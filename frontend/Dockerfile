@@ -4,7 +4,7 @@ COPY package.json package-lock.json* ./
 RUN npm install
 COPY . .
 ARG VITE_API_URL=/api
-ARG VITE_LIVEKIT_URL=ws://localhost:7880
+ARG VITE_LIVEKIT_URL=wss://localhost/livekit
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_LIVEKIT_URL=$VITE_LIVEKIT_URL
 RUN npm run build

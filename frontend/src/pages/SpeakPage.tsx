@@ -29,6 +29,12 @@ export default function SpeakPage() {
     setStatus('connecting')
     setError('')
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error(
+          'Mikrofon er ikke tilgjengelig. Åpne siden via https:// eller http://localhost — Chrome blokkerer mikrofon på HTTP med IP-adresse.'
+        )
+      }
+
       const { token: lvToken, channelKey: key } = await api.getChannelToken(
         token, channelId, 'speaker'
       )

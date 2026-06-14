@@ -1,4 +1,4 @@
-const BASE = __DEV__ ? 'http://10.0.2.2/api' : 'https://your-domain.com/api'
+const BASE = __DEV__ ? 'http://192.168.50.10/api' : 'https://your-domain.com/api'
 
 async function request<T>(path: string, options?: RequestInit, token?: string | null): Promise<T> {
   const headers: Record<string, string> = {
@@ -7,10 +7,15 @@ async function request<T>(path: string, options?: RequestInit, token?: string | 
   if (options?.body) headers['Content-Type'] = 'application/json'
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers })
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, { ...options, headers })
+  } catch (networkErr: any) {
+    throw new Error(`Nettverksfeil: ${networkErr.message}\nURL: ${BASE}${path}`)
+  }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? 'Request failed')
+    const body = await res.text().catch(() => '')
+    throw new Error(`HTTP ${res.status} ${res.statusText}\n${body}`)
   }
   if (res.status === 204) return undefined as T
   return res.json()

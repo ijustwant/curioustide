@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
-import { Room, RoomEvent, Track } from '@livekit/react-native'
-import type { StackScreenProps } from '@react-navigation/stack'
+import { Room, RoomEvent, Track } from 'livekit-client'
+import { AudioSession } from '@livekit/react-native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 
-type Props = StackScreenProps<RootStackParamList, 'Listen'>
+type Props = NativeStackScreenProps<RootStackParamList, 'Listen'>
 type Status = 'idle' | 'connecting' | 'listening'
 
 const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
@@ -24,17 +25,24 @@ export default function ListenScreen({ navigation }: Props) {
     if (!token || !key.trim()) return
     setStatus('connecting')
     try {
+      await AudioSession.startAudioSession()
+
       const res = await api.joinByKey(token, key.trim())
       setChannelName(res.channelName)
 
       const room = new Room()
       roomRef.current = room
-      room.on(RoomEvent.Disconnected, () => { setStatus('idle'); setChannelName('') })
+      room.on(RoomEvent.Disconnected, () => {
+        AudioSession.stopAudioSession()
+        setStatus('idle')
+        setChannelName('')
+      })
 
       await room.connect(LIVEKIT_URL, res.token)
       setStatus('listening')
     } catch (err: any) {
       Alert.alert('Feil', err.message)
+      AudioSession.stopAudioSession()
       setStatus('idle')
     }
   }
@@ -42,6 +50,7 @@ export default function ListenScreen({ navigation }: Props) {
   function leave() {
     roomRef.current?.disconnect()
     roomRef.current = null
+    AudioSession.stopAudioSession()
     setStatus('idle')
     setChannelName('')
   }

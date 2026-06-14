@@ -3,12 +3,12 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   TextInput, ActivityIndicator, Alert,
 } from 'react-native'
-import type { StackScreenProps } from '@react-navigation/stack'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 
-type Props = StackScreenProps<RootStackParamList, 'Dashboard'>
+type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>
 
 export default function DashboardScreen({ navigation }: Props) {
   const { token, user, logout } = useAuthStore()

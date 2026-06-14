@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { Audio } from 'expo-av'
-import { Room, RoomEvent, createLocalAudioTrack } from '@livekit/react-native'
-import type { StackScreenProps } from '@react-navigation/stack'
+import { Room, RoomEvent, createLocalAudioTrack } from 'livekit-client'
+import { AudioSession } from '@livekit/react-native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone, stopTestTone } from '../lib/testTone'
 
-type Props = StackScreenProps<RootStackParamList, 'Speak'>
+type Props = NativeStackScreenProps<RootStackParamList, 'Speak'>
 type Status = 'idle' | 'connecting' | 'live' | 'error'
 
 const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
@@ -32,6 +33,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
     setStatus('connecting')
     try {
       await Audio.requestPermissionsAsync()
+      await AudioSession.startAudioSession()
       const { token: lvToken } = await api.getChannelToken(token, channelId, 'speaker')
 
       const room = new Room()
@@ -47,7 +49,10 @@ export default function SpeakScreen({ route, navigation }: Props) {
       await room.localParticipant.publishTrack(audioTrack)
       setStatus('live')
     } catch (err: any) {
-      Alert.alert('Feil', err.message)
+      const msg = err?.message || String(err)
+      const stack = err?.stack ? '\n\n' + err.stack.slice(0, 400) : ''
+      console.error('[Speak] feil:', msg, err?.stack)
+      Alert.alert('Feil', msg + stack)
       setStatus('error')
     }
   }
@@ -55,6 +60,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
   async function stopStream() {
     roomRef.current?.disconnect()
     roomRef.current = null
+    AudioSession.stopAudioSession()
     setStatus('idle')
   }
 

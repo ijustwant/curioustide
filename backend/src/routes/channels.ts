@@ -61,9 +61,10 @@ export default async function channelRoutes(app: FastifyInstance) {
     if (!channel) return reply.status(404).send({ error: 'Channel not found' })
 
     const canPublish = role === 'speaker' && channel.userId === sub
+    const identity = canPublish ? `${sub}:spk` : `${sub}:lst:${Date.now()}`
     const token = await generateLivekitToken({
       roomName: `ch_${channel.channelKey}`,
-      participantIdentity: sub,
+      participantIdentity: identity,
       participantName: email,
       canPublish,
       canSubscribe: true,
@@ -83,7 +84,7 @@ export default async function channelRoutes(app: FastifyInstance) {
 
     const token = await generateLivekitToken({
       roomName: `ch_${channel.channelKey}`,
-      participantIdentity: sub,
+      participantIdentity: `${sub}:lst:${Date.now()}`,
       participantName: email,
       canPublish: false,
       canSubscribe: true,
