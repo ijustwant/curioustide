@@ -2,15 +2,18 @@
 """
 CuriousTide – Raspberry Pi lytter
 Kobler til serveren og spiller lyd fra kanalen ut på linjeutgangen.
+Innstillinger leses fra config.json (settes via WiFi-oppsett webgrensesnittet).
 
 Installasjon:
-    pip install livekit httpx sounddevice numpy
+    pip install livekit httpx sounddevice numpy flask
 
 Kjøring:
     python listen.py
 """
 
 import asyncio
+import json
+import os
 import sys
 import numpy as np
 import sounddevice as sd
@@ -18,10 +21,20 @@ import httpx
 from livekit import rtc
 
 # ── Konfigurasjon ──────────────────────────────────────────────────────────────
-SERVER      = "http://192.168.50.10"   # PC-ens IP (endre ved behov)
-EMAIL       = "test@example.com"
-PASSWORD    = "testpass123"
-KANAL_ID    = "0PPUF9"                 # Kanal-ID å lytte til
+_SKRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_KONFIG_FIL = os.path.join(_SKRIPT_DIR, "config.json")
+
+def _les_konfig() -> dict:
+    if os.path.exists(_KONFIG_FIL):
+        with open(_KONFIG_FIL) as f:
+            return json.load(f)
+    return {}
+
+_k = _les_konfig()
+SERVER      = _k.get("server",   "http://192.168.50.10")
+EMAIL       = _k.get("email",    "test@example.com")
+PASSWORD    = _k.get("password", "testpass123")
+KANAL_ID    = _k.get("kanal_id", "0PPUF9")
 SAMPLE_RATE = 48000
 KANALER     = 1
 # Sett til None for standard lydutgang, eller f.eks. "hw:0,0" for spesifikt kort
