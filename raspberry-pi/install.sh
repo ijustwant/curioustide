@@ -15,7 +15,7 @@ echo ""
 # ── 1. Avhengigheter ──────────────────────────────────────────────────────────
 echo "→ Installerer systemavhengigheter..."
 apt-get update -q
-apt-get install -y -q python3-pip python3-venv network-manager
+apt-get install -y -q python3-pip python3-venv network-manager libportaudio2
 
 # ── 2. Python-miljø ───────────────────────────────────────────────────────────
 echo "→ Oppretter Python-virtuelt miljø..."
