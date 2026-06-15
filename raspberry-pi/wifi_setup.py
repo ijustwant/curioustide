@@ -18,6 +18,10 @@ import re
 import shutil
 from flask import Flask, jsonify, request, render_template_string, redirect
 
+# Tving linje-bufret output slik at journalctl ser print() umiddelbart
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
 # ── Konfigurasjon ──────────────────────────────────────────────────────────────
 SKRIPT_DIR     = os.path.dirname(os.path.abspath(__file__))
 KONFIG_FIL     = os.path.join(SKRIPT_DIR, "config.json")
@@ -226,8 +230,18 @@ def _koble_bakgrunn(ssid: str, passord: str):
     start_aksesspunkt()
 
 
+def _koble_bakgrunn_sikker(ssid: str, passord: str):
+    try:
+        _koble_bakgrunn(ssid, passord)
+    except Exception as e:
+        print(f"✗ Uventet feil i bakgrunnstråd: {e}", flush=True)
+        import traceback; traceback.print_exc()
+        time.sleep(2)
+        start_aksesspunkt()
+
+
 def _start_koble_bakgrunn(ssid: str, passord: str):
-    threading.Thread(target=_koble_bakgrunn, args=(ssid, passord),
+    threading.Thread(target=_koble_bakgrunn_sikker, args=(ssid, passord),
                      daemon=True).start()
 
 
