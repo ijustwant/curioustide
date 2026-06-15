@@ -40,15 +40,10 @@ address=/#/10.42.0.1
 EOF
 
 # Aktiver dnsmasq-shared i NetworkManager
+# Fjern dns=dnsmasq hvis den finnes – den kolliderer med hotspot-dnsmasq
+# og hindrer captive portal DNS-redirect fra å virke
 NM_CONF="/etc/NetworkManager/NetworkManager.conf"
-if ! grep -q "dns=dnsmasq" "$NM_CONF" 2>/dev/null; then
-    # Sjekk om [main]-seksjonen eksisterer
-    if grep -q "\[main\]" "$NM_CONF"; then
-        sed -i '/\[main\]/a dns=dnsmasq' "$NM_CONF"
-    else
-        echo -e "[main]\ndns=dnsmasq" >> "$NM_CONF"
-    fi
-fi
+sed -i '/^dns=dnsmasq/d' "$NM_CONF" 2>/dev/null || true
 
 systemctl restart NetworkManager
 sleep 2
