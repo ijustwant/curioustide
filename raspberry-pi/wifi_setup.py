@@ -74,6 +74,12 @@ def _konfigurer_dnsmasq_portal():
 
 def start_aksesspunkt() -> bool:
     _konfigurer_dnsmasq_portal()          # MÅ gjøres FØR hotspot startes
+    # Koble eksplisitt fra eksisterende WiFi-tilkobling på wlan0.
+    # Uten dette vil NM auto-gjenkoble til lagret nettverk og slå
+    # av hotspotet etter ~1 sekund.
+    subprocess.run(["nmcli", "device", "disconnect", AP_GRENSESNITT],
+                   capture_output=True)
+    time.sleep(2)
     subprocess.run(["nmcli", "connection", "delete", AP_SSID],
                    capture_output=True)
     res = subprocess.run([
