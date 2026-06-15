@@ -72,26 +72,21 @@ def start_aksesspunkt() -> bool:
 
 def _setup_captive_portal_iptables():
     """
-    Omdirigerer all innkommende HTTP-trafikk (port 80) på AP-grensesnittet
-    til vår webserver. Dermed trenger ikke DNS-omdirigering å virke –
-    mobilen fanger opp enhver HTTP-forespørsel og ser captive portal.
+    Omdirigerer innkommende HTTP-trafikk (port 80) på AP-grensesnittet til
+    vår webserver. Bruker målrettet slett+legg-til for å ikke forstyrre
+    NetworkManagers egne iptables-regler (DHCP/DNS/NAT).
     """
-    # Tøm eventuelle gamle regler
-    subprocess.run(["iptables", "-t", "nat", "-F", "PREROUTING"],
-                   capture_output=True)
-    # Omdiriger port 80 → vår Flask-server
-    subprocess.run([
-        "iptables", "-t", "nat", "-A", "PREROUTING",
+    regel = [
+        "iptables", "-t", "nat",
         "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
         "-j", "REDIRECT", "--to-port", str(WEB_PORT),
-    ], capture_output=True)
-    # DNS: omdiriger port 53 UDP til Pi-ens eget dnsmasq (NM håndterer dette,
-    # men en eksplisitt regel sikrer at alle klienter bruker Pi-en som DNS)
-    subprocess.run([
-        "iptables", "-t", "nat", "-A", "PREROUTING",
-        "-i", AP_GRENSESNITT, "-p", "udp", "--dport", "53",
-        "-j", "REDIRECT", "--to-port", "53",
-    ], capture_output=True)
+    ]
+    # Slett eventuell gammel kopi (unngår duplikater ved restart)
+    subprocess.run(["iptables", "-t", "nat", "-D", "PREROUTING"] + regel[3:],
+                   capture_output=True)
+    # Legg til ny regel
+    subprocess.run(["iptables", "-t", "nat", "-A", "PREROUTING"] + regel[3:],
+                   capture_output=True)
 
 
 def skann_nettverk() -> list[dict]:
@@ -146,7 +141,12 @@ def _koble_bakgrunn(ssid: str, passord: str):
 
     # 1. Stopp aksesspunktet – wlan0 må være ledig for klientmodus
     _koble_status = {"fase": "kobler", "melding": "Stopper aksesspunkt…"}
-    subprocess.run(["iptables", "-t", "nat", "-F", "PREROUTING"], capture_output=True)
+    # Fjern vår HTTP-redirect-regel (ikke flush alt – bevarer NM sine regler)
+    subprocess.run([
+        "iptables", "-t", "nat", "-D", "PREROUTING",
+        "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
+        "-j", "REDIRECT", "--to-port", str(WEB_PORT),
+    ], capture_output=True)
     subprocess.run(["nmcli", "connection", "down", AP_SSID], capture_output=True)
     subprocess.run(["nmcli", "connection", "delete", AP_SSID], capture_output=True)
     time.sleep(3)
