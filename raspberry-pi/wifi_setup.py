@@ -15,6 +15,7 @@ import sys
 import time
 import threading
 import re
+import shutil
 from flask import Flask, jsonify, request, render_template_string, redirect
 
 # ── Konfigurasjon ──────────────────────────────────────────────────────────────
@@ -33,6 +34,8 @@ STANDARDKONFIG = {
     "password":     "testpass123",
     "kanal_id":     "0PPUF9",
 }
+
+IPTABLES = shutil.which("iptables") or "/usr/sbin/iptables"
 
 app = Flask(__name__)
 
@@ -101,15 +104,15 @@ def _setup_captive_portal_iptables():
     NetworkManagers egne iptables-regler (DHCP/DNS/NAT).
     """
     regel = [
-        "iptables", "-t", "nat",
+        IPTABLES, "-t", "nat",
         "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
         "-j", "REDIRECT", "--to-port", str(WEB_PORT),
     ]
     # Slett eventuell gammel kopi (unngår duplikater ved restart)
-    subprocess.run(["iptables", "-t", "nat", "-D", "PREROUTING"] + regel[3:],
+    subprocess.run([IPTABLES, "-t", "nat", "-D", "PREROUTING"] + regel[3:],
                    capture_output=True)
     # Legg til ny regel
-    subprocess.run(["iptables", "-t", "nat", "-A", "PREROUTING"] + regel[3:],
+    subprocess.run([IPTABLES, "-t", "nat", "-A", "PREROUTING"] + regel[3:],
                    capture_output=True)
 
 
@@ -167,7 +170,7 @@ def _koble_bakgrunn(ssid: str, passord: str):
     _koble_status = {"fase": "kobler", "melding": "Stopper aksesspunkt…"}
     # Fjern vår HTTP-redirect-regel (ikke flush alt – bevarer NM sine regler)
     subprocess.run([
-        "iptables", "-t", "nat", "-D", "PREROUTING",
+        IPTABLES, "-t", "nat", "-D", "PREROUTING",
         "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
         "-j", "REDIRECT", "--to-port", str(WEB_PORT),
     ], capture_output=True)
