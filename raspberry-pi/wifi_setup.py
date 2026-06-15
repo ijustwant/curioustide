@@ -55,7 +55,25 @@ def skriv_konfig(data: dict):
 
 # ── WiFi-funksjoner ────────────────────────────────────────────────────────────
 
+def _konfigurer_dnsmasq_portal():
+    """
+    Skriver en konfig til NM sin dnsmasq-shared.d som omdirigerer ALL DNS
+    til Pi-en (10.42.0.1). Må kalles FØR nmcli hotspot starter, slik at
+    NM sin dnsmasq-instans plukker opp filen når den lanseres.
+    Effekt: telefonen slår opp 'connectivitycheck.gstatic.com' og får
+    svar 10.42.0.1 → captive portal-sjekk treffer vår Flask-server.
+    """
+    conf_dir = "/etc/NetworkManager/dnsmasq-shared.d"
+    try:
+        os.makedirs(conf_dir, exist_ok=True)
+        with open(os.path.join(conf_dir, "curioustide.conf"), "w") as f:
+            f.write("address=/#/10.42.0.1\n")
+    except PermissionError:
+        print("⚠ Mangler tillatelse til å skrive dnsmasq-konfig (kjør som root)")
+
+
 def start_aksesspunkt() -> bool:
+    _konfigurer_dnsmasq_portal()          # MÅ gjøres FØR hotspot startes
     subprocess.run(["nmcli", "connection", "delete", AP_SSID],
                    capture_output=True)
     res = subprocess.run([
@@ -197,29 +215,19 @@ def _start_koble_bakgrunn(ssid: str, passord: str):
 
 PORTAL_URL = "http://10.42.0.1/"
 
-# ── Captive portal-deteksjon ──────────────────────────────────────────────────
-# iOS/macOS: forventer Apple-spesifikt innhold på /hotspot-detect.html.
-# Returnerer vi noe annet enn forventet → iOS viser "Logg inn på nettverk"-popup.
-@app.route("/hotspot-detect.html")
-@app.route("/library/test/success.html")
-@app.route("/success.html")
-def captive_ios():
-    return (
-        "<html><head><title>CuriousTide</title></head>"
-        "<body><a href='http://10.42.0.1/'>Åpne CuriousTide-oppsett</a></body></html>"
-    ), 200
-
-# Android: forventer 204 No Content. Vi returnerer 302 → åpner portal-browser.
-@app.route("/generate_204")
-@app.route("/gen_204")
-def captive_android():
-    return redirect(PORTAL_URL, code=302)
-
-# Windows: forventer "Microsoft Connect Test". Noe annet → portal-notifikasjon.
-@app.route("/connecttest.txt")
-@app.route("/redirect")
-@app.route("/ncsi.txt")
-def captive_windows():
+@app.before_request
+def captive_portal_fange_alt():
+    """
+    Fanger opp ALLE HTTP-forespørsler som ikke er API-kall eller hjemmesiden.
+    Dette inkluderer:
+      - iOS:     GET /hotspot-detect.html  (Host: captive.apple.com)
+      - Android: GET /generate_204         (Host: connectivitycheck.gstatic.com)
+      - Windows: GET /connecttest.txt      (Host: www.msftconnecttest.com)
+    Med dnsmasq DNS-redirect peker alle disse domenene til oss, og vi
+    omdirigerer til oppsettssiden. Telefonen tolker dette som captive portal.
+    """
+    if request.path == "/" or request.path.startswith("/api/"):
+        return None   # La hjemmesiden og API-kall passere
     return redirect(PORTAL_URL, code=302)
 
 
