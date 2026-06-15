@@ -126,27 +126,71 @@ def skann_nettverk() -> list[dict]:
     return sorted(nettverk, key=lambda x: x["signal"], reverse=True)
 
 
-def koble_til_wifi(ssid: str, passord: str) -> tuple[bool, str]:
-    subprocess.run(["nmcli", "connection", "delete", ssid], capture_output=True)
-    try:
-        args = ["nmcli", "device", "wifi", "connect", ssid]
-        if passord:
-            args += ["password", passord]
-        res = subprocess.run(args, capture_output=True, text=True, timeout=30)
-        if res.returncode == 0:
-            return True, "OK"
-        tekst = (res.stderr + res.stdout).strip()
-        if "Secrets were required" in tekst or "password" in tekst.lower():
-            return False, "Feil passord"
-        return False, tekst or "Ukjent feil"
-    except subprocess.TimeoutExpired:
-        return False, "Tidsavbrudd – sjekk passordet og prøv igjen"
-
-
 def restart_som_lytter():
     time.sleep(2)
     os.execvp(sys.executable,
               [sys.executable, os.path.join(SKRIPT_DIR, "listen.py")])
+
+
+# Global tilstandssporing for pågående WiFi-tilkobling
+_koble_status: dict = {"fase": "idle", "melding": ""}
+
+
+def _koble_bakgrunn(ssid: str, passord: str):
+    """
+    Kjøres i bakgrunnen etter at HTTP-respons er sendt til klienten.
+    Stopper AP-et (som frigjør wlan0), kobler til nytt nettverk,
+    og starter listen.py. Ved feil startes AP på nytt.
+    """
+    global _koble_status
+
+    # 1. Stopp aksesspunktet – wlan0 må være ledig for klientmodus
+    _koble_status = {"fase": "kobler", "melding": "Stopper aksesspunkt…"}
+    subprocess.run(["iptables", "-t", "nat", "-F", "PREROUTING"], capture_output=True)
+    subprocess.run(["nmcli", "connection", "down", AP_SSID], capture_output=True)
+    subprocess.run(["nmcli", "connection", "delete", AP_SSID], capture_output=True)
+    time.sleep(3)
+
+    # 2. Fjern gammel profil for samme SSID og koble til
+    _koble_status = {"fase": "kobler", "melding": f"Kobler til «{ssid}»…"}
+    subprocess.run(["nmcli", "connection", "delete", ssid], capture_output=True)
+
+    try:
+        args = ["nmcli", "device", "wifi", "connect", ssid,
+                "ifname", AP_GRENSESNITT]
+        if passord:
+            args += ["password", passord]
+        res = subprocess.run(args, capture_output=True, text=True, timeout=40)
+    except subprocess.TimeoutExpired:
+        res = None
+
+    # 3a. Suksess → lagre og start lyttemodus
+    if res and res.returncode == 0:
+        konfig = les_konfig()
+        konfig["wifi_ssid"]    = ssid
+        konfig["wifi_passord"] = passord
+        skriv_konfig(konfig)
+        _koble_status = {"fase": "ok", "melding": f"Koblet til «{ssid}»!"}
+        restart_som_lytter()
+        return
+
+    # 3b. Feil → start AP på nytt så brukeren kan prøve igjen
+    tekst = ""
+    if res:
+        tekst = (res.stderr + res.stdout).strip()
+        if "password" in tekst.lower() or "Secrets" in tekst:
+            tekst = "Feil passord"
+    _koble_status = {
+        "fase": "feil",
+        "melding": tekst or "Tilkobling feilet – ukjent feil",
+    }
+    time.sleep(2)
+    start_aksesspunkt()
+
+
+def _start_koble_bakgrunn(ssid: str, passord: str):
+    threading.Thread(target=_koble_bakgrunn, args=(ssid, passord),
+                     daemon=True).start()
 
 
 # ── Captive portal + API ───────────────────────────────────────────────────────
@@ -197,18 +241,23 @@ def api_koble_til():
     if not ssid:
         return jsonify({"ok": False, "melding": "SSID mangler"}), 400
 
-    ok, melding = koble_til_wifi(ssid, passord)
-    if ok:
-        konfig = les_konfig()
-        konfig["wifi_ssid"]    = ssid
-        konfig["wifi_passord"] = passord
-        skriv_konfig(konfig)
-        threading.Thread(target=restart_som_lytter, daemon=True).start()
-        return jsonify({
-            "ok": True,
-            "melding": f"Koblet til «{ssid}»! Enheten starter lyttemodus om noen sekunder.",
-        })
-    return jsonify({"ok": False, "melding": melding}), 400
+    # Start tilkobling i bakgrunnen og returner med en gang.
+    # AP stopper etter at klienten har mottatt denne responsen.
+    _start_koble_bakgrunn(ssid, passord)
+    return jsonify({
+        "ok": True,
+        "pending": True,
+        "melding": (
+            f"Kobler til «{ssid}»… Aksesspunktet slår seg av om noen sekunder. "
+            "Koble tilbake til ditt vanlige WiFi. "
+            "Hvis noe gikk galt starter aksesspunktet igjen."
+        ),
+    })
+
+
+@app.route("/api/koble-status")
+def api_koble_status():
+    return jsonify(_koble_status)
 
 
 @app.route("/api/innstillinger", methods=["GET"])
@@ -667,10 +716,14 @@ async function koble() {
       body: JSON.stringify({ ssid, passord }),
     });
     const data = await res.json();
+
     if (data.ok) {
-      document.getElementById("suksess-tittel").textContent = `Koblet til «${ssid}»!`;
+      // Vis overlegg umiddelbart – AP slår seg av straks etter
+      document.getElementById("suksess-tittel").textContent = `Kobler til «${ssid}»…`;
       document.getElementById("suksess-tekst").textContent =
-        "Enheten kobler nå fra dette aksesspunktet og starter lyttemodus.\n\nKoble tilbake til ditt vanlige WiFi-nettverk.";
+        "Aksesspunktet slår seg av om noen sekunder.\n\n" +
+        "Koble tilbake til ditt vanlige WiFi-nettverk.\n\n" +
+        "Hvis noe gikk galt starter «CuriousTide-Setup» igjen.";
       document.getElementById("suksess-overlay").classList.add("vis");
     } else {
       visMelding("wifi-melding", data.melding || "Noe gikk galt. Prøv igjen.", "feil");
