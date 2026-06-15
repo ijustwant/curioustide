@@ -35,7 +35,11 @@ STANDARDKONFIG = {
     "kanal_id":     "0PPUF9",
 }
 
-IPTABLES = shutil.which("iptables") or "/usr/sbin/iptables"
+IPTABLES = (
+    shutil.which("iptables") or
+    shutil.which("iptables-nft") or
+    shutil.which("iptables-legacy")
+)  # None hvis ikke installert – captive portal fungerer via DNS alene
 
 app = Flask(__name__)
 
@@ -100,19 +104,18 @@ def start_aksesspunkt() -> bool:
 def _setup_captive_portal_iptables():
     """
     Omdirigerer innkommende HTTP-trafikk (port 80) på AP-grensesnittet til
-    vår webserver. Bruker målrettet slett+legg-til for å ikke forstyrre
-    NetworkManagers egne iptables-regler (DHCP/DNS/NAT).
+    vår webserver. Valgfritt – captive portal fungerer via DNS alene.
     """
-    regel = [
-        IPTABLES, "-t", "nat",
+    if not IPTABLES:
+        print("ℹ iptables ikke funnet – HTTP-redirect hoppes over (DNS-redirect er aktiv)")
+        return
+    regel_suffiks = [
         "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
         "-j", "REDIRECT", "--to-port", str(WEB_PORT),
     ]
-    # Slett eventuell gammel kopi (unngår duplikater ved restart)
-    subprocess.run([IPTABLES, "-t", "nat", "-D", "PREROUTING"] + regel[3:],
+    subprocess.run([IPTABLES, "-t", "nat", "-D", "PREROUTING"] + regel_suffiks,
                    capture_output=True)
-    # Legg til ny regel
-    subprocess.run([IPTABLES, "-t", "nat", "-A", "PREROUTING"] + regel[3:],
+    subprocess.run([IPTABLES, "-t", "nat", "-A", "PREROUTING"] + regel_suffiks,
                    capture_output=True)
 
 
@@ -169,11 +172,12 @@ def _koble_bakgrunn(ssid: str, passord: str):
     # 1. Stopp aksesspunktet – wlan0 må være ledig for klientmodus
     _koble_status = {"fase": "kobler", "melding": "Stopper aksesspunkt…"}
     # Fjern vår HTTP-redirect-regel (ikke flush alt – bevarer NM sine regler)
-    subprocess.run([
-        IPTABLES, "-t", "nat", "-D", "PREROUTING",
-        "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
-        "-j", "REDIRECT", "--to-port", str(WEB_PORT),
-    ], capture_output=True)
+    if IPTABLES:
+        subprocess.run([
+            IPTABLES, "-t", "nat", "-D", "PREROUTING",
+            "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
+            "-j", "REDIRECT", "--to-port", str(WEB_PORT),
+        ], capture_output=True)
     subprocess.run(["nmcli", "connection", "down", AP_SSID], capture_output=True)
     subprocess.run(["nmcli", "connection", "delete", AP_SSID], capture_output=True)
     time.sleep(3)
