@@ -64,7 +64,34 @@ def start_aksesspunkt() -> bool:
         "ssid", AP_SSID,
         "password", AP_PASSORD,
     ], capture_output=True, text=True)
+    if res.returncode == 0:
+        time.sleep(2)   # Vent til grensesnittet er oppe
+        _setup_captive_portal_iptables()
     return res.returncode == 0
+
+
+def _setup_captive_portal_iptables():
+    """
+    Omdirigerer all innkommende HTTP-trafikk (port 80) på AP-grensesnittet
+    til vår webserver. Dermed trenger ikke DNS-omdirigering å virke –
+    mobilen fanger opp enhver HTTP-forespørsel og ser captive portal.
+    """
+    # Tøm eventuelle gamle regler
+    subprocess.run(["iptables", "-t", "nat", "-F", "PREROUTING"],
+                   capture_output=True)
+    # Omdiriger port 80 → vår Flask-server
+    subprocess.run([
+        "iptables", "-t", "nat", "-A", "PREROUTING",
+        "-i", AP_GRENSESNITT, "-p", "tcp", "--dport", "80",
+        "-j", "REDIRECT", "--to-port", str(WEB_PORT),
+    ], capture_output=True)
+    # DNS: omdiriger port 53 UDP til Pi-ens eget dnsmasq (NM håndterer dette,
+    # men en eksplisitt regel sikrer at alle klienter bruker Pi-en som DNS)
+    subprocess.run([
+        "iptables", "-t", "nat", "-A", "PREROUTING",
+        "-i", AP_GRENSESNITT, "-p", "udp", "--dport", "53",
+        "-j", "REDIRECT", "--to-port", "53",
+    ], capture_output=True)
 
 
 def skann_nettverk() -> list[dict]:
@@ -126,17 +153,29 @@ def restart_som_lytter():
 
 PORTAL_URL = "http://10.42.0.1/"
 
-# Captive portal-deteksjon: iOS, Android, Windows, macOS sender disse for å
-# sjekke om det er internett. Vi omdirigerer til oppsettssiden vår.
-@app.route("/hotspot-detect.html")       # iOS / macOS
-@app.route("/library/test/success.html") # macOS eldre
-@app.route("/generate_204")              # Android
-@app.route("/gen_204")                   # Android variant
-@app.route("/connecttest.txt")           # Windows
-@app.route("/redirect")                  # Windows
-@app.route("/ncsi.txt")                  # Windows
-@app.route("/success.txt")               # diverse
-def captive_portal_redir():
+# ── Captive portal-deteksjon ──────────────────────────────────────────────────
+# iOS/macOS: forventer Apple-spesifikt innhold på /hotspot-detect.html.
+# Returnerer vi noe annet enn forventet → iOS viser "Logg inn på nettverk"-popup.
+@app.route("/hotspot-detect.html")
+@app.route("/library/test/success.html")
+@app.route("/success.html")
+def captive_ios():
+    return (
+        "<html><head><title>CuriousTide</title></head>"
+        "<body><a href='http://10.42.0.1/'>Åpne CuriousTide-oppsett</a></body></html>"
+    ), 200
+
+# Android: forventer 204 No Content. Vi returnerer 302 → åpner portal-browser.
+@app.route("/generate_204")
+@app.route("/gen_204")
+def captive_android():
+    return redirect(PORTAL_URL, code=302)
+
+# Windows: forventer "Microsoft Connect Test". Noe annet → portal-notifikasjon.
+@app.route("/connecttest.txt")
+@app.route("/redirect")
+@app.route("/ncsi.txt")
+def captive_windows():
     return redirect(PORTAL_URL, code=302)
 
 
