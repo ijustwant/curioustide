@@ -186,22 +186,34 @@ def _koble_bakgrunn(ssid: str, passord: str):
     subprocess.run(["nmcli", "connection", "delete", AP_SSID], capture_output=True)
     time.sleep(3)
 
-    # 2. Fjern gammel profil for samme SSID og koble til
+    # 2. Fjern gammel profil og opprett ny med eksplisitt sikkerhetstype
     _koble_status = {"fase": "kobler", "melding": f"Kobler til «{ssid}»…"}
     subprocess.run(["nmcli", "connection", "delete", ssid], capture_output=True)
+    time.sleep(1)
+
+    # Opprett tilkobling eksplisitt (unngår 'key-mgmt missing'-feil)
+    add_args = [
+        "nmcli", "connection", "add",
+        "type", "wifi",
+        "ifname", AP_GRENSESNITT,
+        "ssid", ssid,
+        "con-name", ssid,
+    ]
+    if passord:
+        add_args += ["wifi-sec.key-mgmt", "wpa-psk", "wifi-sec.psk", passord]
+    print(f"→ Oppretter profil: nmcli connection add ... ssid={ssid!r}", flush=True)
+    add_res = subprocess.run(add_args, capture_output=True, text=True)
+    print(f"  add returncode={add_res.returncode} stderr={add_res.stderr.strip()!r}", flush=True)
 
     try:
-        args = ["nmcli", "device", "wifi", "connect", ssid,
-                "ifname", AP_GRENSESNITT]
-        if passord:
-            args += ["password", passord]
-        print(f"→ Kjører: {' '.join(args)}")
-        res = subprocess.run(args, capture_output=True, text=True, timeout=40)
+        up_args = ["nmcli", "connection", "up", ssid, "ifname", AP_GRENSESNITT]
+        print(f"→ Aktiverer: {' '.join(up_args)}", flush=True)
+        res = subprocess.run(up_args, capture_output=True, text=True, timeout=40)
         print(f"  returncode={res.returncode}")
         print(f"  stdout={res.stdout.strip()!r}")
-        print(f"  stderr={res.stderr.strip()!r}")
+        print(f"  stderr={res.stderr.strip()!r}", flush=True)
     except subprocess.TimeoutExpired:
-        print("✗ nmcli tidsavbrudd (>40s)")
+        print("✗ nmcli tidsavbrudd (>40s)", flush=True)
         res = None
 
     # 3a. Suksess → lagre og start lyttemodus
