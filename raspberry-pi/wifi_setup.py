@@ -191,12 +191,18 @@ def _koble_bakgrunn(ssid: str, passord: str):
                 "ifname", AP_GRENSESNITT]
         if passord:
             args += ["password", passord]
+        print(f"→ Kjører: {' '.join(args)}")
         res = subprocess.run(args, capture_output=True, text=True, timeout=40)
+        print(f"  returncode={res.returncode}")
+        print(f"  stdout={res.stdout.strip()!r}")
+        print(f"  stderr={res.stderr.strip()!r}")
     except subprocess.TimeoutExpired:
+        print("✗ nmcli tidsavbrudd (>40s)")
         res = None
 
     # 3a. Suksess → lagre og start lyttemodus
     if res and res.returncode == 0:
+        print(f"✓ Koblet til «{ssid}» – lagrer konfig og starter listen.py")
         konfig = les_konfig()
         konfig["wifi_ssid"]    = ssid
         konfig["wifi_passord"] = passord
@@ -211,6 +217,7 @@ def _koble_bakgrunn(ssid: str, passord: str):
         tekst = (res.stderr + res.stdout).strip()
         if "password" in tekst.lower() or "Secrets" in tekst:
             tekst = "Feil passord"
+    print(f"✗ WiFi-tilkobling feilet: {tekst or 'ukjent feil'}")
     _koble_status = {
         "fase": "feil",
         "melding": tekst or "Tilkobling feilet – ukjent feil",
