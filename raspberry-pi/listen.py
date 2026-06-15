@@ -24,6 +24,9 @@ import httpx
 from livekit import rtc
 from flask import Flask, jsonify, request, render_template_string
 
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
 # ── Konfigurasjon ──────────────────────────────────────────────────────────────
 _SKRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _KONFIG_FIL = os.path.join(_SKRIPT_DIR, "config.json")
