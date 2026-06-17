@@ -22,11 +22,7 @@ export default function ListenPage() {
   function testLyd() {
     if (testing) return
     setTesting(true)
-    startTestTone()
-    setTimeout(() => {
-      stopTestTone()
-      setTesting(false)
-    }, 3000)
+    startTestTone(() => setTesting(false))
   }
 
   useEffect(() => () => { roomRef.current?.disconnect() }, [])

@@ -24,11 +24,7 @@ export default function ListenScreen({ navigation }: Props) {
   async function testLyd() {
     if (testing) return
     setTesting(true)
-    await startTestTone()
-    setTimeout(() => {
-      stopTestTone()
-      setTesting(false)
-    }, 3000)
+    await startTestTone(() => setTesting(false))
   }
 
   useEffect(() => () => { roomRef.current?.disconnect() }, [])

@@ -1,33 +1,15 @@
-let ctx: AudioContext | null = null
-let interval: ReturnType<typeof setInterval> | null = null
+const TEKST = 'Dette er en test av CuriousTide. Hvis du hører dette, fungerer lydmottaket.'
 
-export function startTestTone(): void {
-  if (interval) return
-  ctx = new AudioContext()
-
-  const play = () => {
-    if (!ctx) return
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.type = 'sine'
-    osc.frequency.value = 1200
-    gain.gain.setValueAtTime(0.4, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 0.35)
-  }
-
-  play()
-  interval = setInterval(play, 1500)
+export function startTestTone(onDone?: () => void): void {
+  if (!window.speechSynthesis) { onDone?.(); return }
+  window.speechSynthesis.cancel()
+  const ytring = new SpeechSynthesisUtterance(TEKST)
+  ytring.lang = 'nb-NO'
+  ytring.rate = 0.95
+  if (onDone) ytring.onend = onDone
+  window.speechSynthesis.speak(ytring)
 }
 
 export function stopTestTone(): void {
-  if (interval) {
-    clearInterval(interval)
-    interval = null
-  }
-  ctx?.close()
-  ctx = null
+  window.speechSynthesis?.cancel()
 }
