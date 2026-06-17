@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Room, RoomEvent, RemoteTrack, Track } from 'livekit-client'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
+import { startTestTone, stopTestTone } from '../lib/testTone'
 
 type Status = 'idle' | 'connecting' | 'listening' | 'error'
 
@@ -15,7 +16,18 @@ export default function ListenPage() {
   const [status, setStatus] = useState<Status>('idle')
   const [channelName, setChannelName] = useState('')
   const [error, setError] = useState('')
+  const [testing, setTesting] = useState(false)
   const audioContainerRef = useRef<HTMLDivElement>(null)
+
+  function testLyd() {
+    if (testing) return
+    setTesting(true)
+    startTestTone()
+    setTimeout(() => {
+      stopTestTone()
+      setTesting(false)
+    }, 3000)
+  }
 
   useEffect(() => () => { roomRef.current?.disconnect() }, [])
 
@@ -102,6 +114,13 @@ export default function ListenPage() {
                 Lytter til: <span className="font-bold ml-1">{channelName}</span>
               </div>
               <div ref={audioContainerRef} className="hidden" />
+              <button
+                onClick={testLyd}
+                disabled={testing}
+                className="w-full py-4 text-lg font-semibold rounded-2xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 transition active:scale-95"
+              >
+                {testing ? '🔊 Tester...' : '🔊 Test lyd'}
+              </button>
               <button
                 onClick={leave}
                 className="w-full py-5 text-xl font-bold rounded-2xl bg-red-700 hover:bg-red-600 transition active:scale-95"

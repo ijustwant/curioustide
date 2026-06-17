@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
+import { startTestTone, stopTestTone } from '../lib/testTone'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Listen'>
 type Status = 'idle' | 'connecting' | 'listening'
@@ -18,6 +19,17 @@ export default function ListenScreen({ navigation }: Props) {
   const [key, setKey] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [channelName, setChannelName] = useState('')
+  const [testing, setTesting] = useState(false)
+
+  async function testLyd() {
+    if (testing) return
+    setTesting(true)
+    await startTestTone()
+    setTimeout(() => {
+      stopTestTone()
+      setTesting(false)
+    }, 3000)
+  }
 
   useEffect(() => () => { roomRef.current?.disconnect() }, [])
 
@@ -88,6 +100,9 @@ export default function ListenScreen({ navigation }: Props) {
             <Text style={s.listeningText}>Lytter til</Text>
           </View>
           <Text style={s.listeningChannel}>{channelName}</Text>
+          <TouchableOpacity style={[s.btn, s.testBtn, testing && s.disabled]} onPress={testLyd} disabled={testing} activeOpacity={0.8}>
+            <Text style={s.btnText}>{testing ? '🔊  Tester...' : '🔊  Test lyd'}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={[s.btn, s.leaveBtn]} onPress={leave} activeOpacity={0.8}>
             <Text style={s.btnText}>⏹  Koble fra</Text>
           </TouchableOpacity>
@@ -107,7 +122,8 @@ const s = StyleSheet.create({
   },
   btn: { width: '100%', borderRadius: 20, paddingVertical: 22, alignItems: 'center' },
   joinBtn: { backgroundColor: '#0284c7' },
-  leaveBtn: { backgroundColor: '#b91c1c', marginTop: 24 },
+  testBtn: { backgroundColor: '#334155', marginTop: 24 },
+  leaveBtn: { backgroundColor: '#b91c1c', marginTop: 12 },
   disabled: { opacity: 0.4 },
   btnText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   connectingText: { color: '#64748b', fontSize: 18 },
