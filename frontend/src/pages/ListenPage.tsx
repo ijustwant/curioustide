@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Room, RoomEvent, RemoteTrack, Track } from 'livekit-client'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
-import { startTestTone, stopTestTone } from '../lib/testTone'
+import { startTestTone } from '../lib/testTone'
 
 type Status = 'idle' | 'connecting' | 'listening' | 'error'
 
