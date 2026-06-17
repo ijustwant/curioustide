@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import socket
+import subprocess
 import sys
 import threading
 import numpy as np
@@ -223,6 +224,17 @@ _INNST_HTML = r"""<!DOCTYPE html>
   <div id="ap-melding" class="melding"></div>
 </div>
 
+<div class="kort">
+  <div class="kort-tittel">Strøm</div>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:14px;line-height:1.5;">
+    Slår av enheten trygt. Vent til all aktivitet stopper før du tar ut strømmen.
+  </p>
+  <button class="knapp" style="background:#374151;" onclick="slåAv()">
+    Slå av enhet…
+  </button>
+  <div id="av-melding" class="melding"></div>
+</div>
+
 <script>
 function toggleVis() {
   const f = document.getElementById("inn-passord");
@@ -280,6 +292,16 @@ async function byttTilAP() {
     visMelding("ap-melding", "Feil – prøv igjen.", "feil");
   }
 }
+
+async function slåAv() {
+  if (!confirm("Slå av enheten? Vent til all aktivitet stopper før du tar ut strømmen.")) return;
+  try {
+    await fetch("/slå-av", { method: "POST" });
+    visMelding("av-melding", "Enheten slås av… Du kan ta ut strømmen om ca. 30 sekunder.", "suksess");
+  } catch {
+    visMelding("av-melding", "Feil – prøv igjen.", "feil");
+  }
+}
 </script>
 </body>
 </html>
@@ -319,6 +341,12 @@ def _bytt_til_ap():
     return jsonify({"ok": True})
 
 
+@_innst_app.route("/slå-av", methods=["POST"])
+def _slå_av():
+    threading.Thread(target=_shutdown, daemon=True).start()
+    return jsonify({"ok": True})
+
+
 def _restart_listen():
     import time
     time.sleep(1)
@@ -330,6 +358,12 @@ def _start_wifi_setup():
     time.sleep(1)
     setup_sti = os.path.join(_SKRIPT_DIR, "wifi_setup.py")
     os.execvp(sys.executable, [sys.executable, setup_sti])
+
+
+def _shutdown():
+    import time
+    time.sleep(1)
+    subprocess.run(["shutdown", "-h", "now"])
 
 
 def _kjor_innstillingsserver():
