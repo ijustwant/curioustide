@@ -45,15 +45,16 @@ export default function DashboardScreen({ navigation }: Props) {
     <View style={s.root}>
       <View style={s.header}>
         <Text style={s.userEmail}>{user?.email}</Text>
-        <View style={s.headerBtns}>
-          <TouchableOpacity style={s.listenBtn} onPress={() => navigation.navigate('Listen')}>
-            <Text style={s.listenBtnText}>🎧 Lytt</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.logoutBtn} onPress={logout}>
-            <Text style={s.logoutBtnText}>Logg ut</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={s.logoutBtn} onPress={logout}>
+          <Text style={s.logoutBtnText}>Logg ut</Text>
+        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={s.listenHero} onPress={() => navigation.navigate('Listen')} activeOpacity={0.85}>
+        <Text style={s.listenHeroIcon}>🎧</Text>
+        <Text style={s.listenHeroText}>Lytt</Text>
+        <Text style={s.listenHeroSub}>Koble til en kanal og lytt</Text>
+      </TouchableOpacity>
 
       <View style={s.createRow}>
         <TextInput
@@ -113,8 +114,14 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   userEmail: { color: '#64748b', fontSize: 13 },
   headerBtns: { flexDirection: 'row', gap: 8 },
-  listenBtn: { backgroundColor: '#1e293b', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 },
-  listenBtnText: { color: '#f1f5f9', fontWeight: '600' },
+  listenHero: {
+    backgroundColor: '#0284c7', borderRadius: 20, paddingVertical: 28,
+    alignItems: 'center', marginBottom: 20,
+    shadowColor: '#0284c7', shadowOpacity: 0.35, shadowRadius: 16, elevation: 6,
+  },
+  listenHeroIcon: { fontSize: 44, marginBottom: 4 },
+  listenHeroText: { color: '#fff', fontSize: 28, fontWeight: '800', letterSpacing: 0.5 },
+  listenHeroSub: { color: '#bae6fd', fontSize: 14, marginTop: 2 },
   logoutBtn: { backgroundColor: '#1e293b', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 },
   logoutBtnText: { color: '#94a3b8', fontWeight: '600' },
   createRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },

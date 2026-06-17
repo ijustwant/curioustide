@@ -44,21 +44,22 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-brand-400">CuriousTide</h1>
           <p className="text-slate-400 text-sm">{user?.email}</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/listen')}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-medium transition"
-          >
-            🎧 Lytt
-          </button>
-          <button
-            onClick={logout}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm font-medium transition"
-          >
-            Logg ut
-          </button>
-        </div>
+        <button
+          onClick={logout}
+          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm font-medium transition"
+        >
+          Logg ut
+        </button>
       </header>
+
+      <button
+        onClick={() => navigate('/listen')}
+        className="w-full mb-8 py-6 rounded-2xl bg-brand-600 hover:bg-brand-500 active:scale-[.98] transition-all flex flex-col items-center gap-1 shadow-lg shadow-brand-900/40"
+      >
+        <span className="text-4xl">🎧</span>
+        <span className="text-2xl font-bold tracking-wide">Lytt</span>
+        <span className="text-brand-200 text-sm">Koble til en kanal og lytt</span>
+      </button>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Ny kanal</h2>
