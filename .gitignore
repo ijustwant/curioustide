@@ -25,3 +25,7 @@ Thumbs.db
 # Build artifacts
 frontend/dist/
 backend/dist/
+mobile/dist-android/
+mobile/apk-serve/
+mobile/expo-build/
+nginx/certs/

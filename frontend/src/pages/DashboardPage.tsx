@@ -8,11 +8,19 @@ export default function DashboardPage() {
   const { token, user, logout } = useAuthStore()
   const [channels, setChannels] = useState<any[]>([])
   const [newName, setNewName] = useState('')
+  const [plan, setPlan] = useState<'3dager' | '14dager'>('3dager')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (token) api.getChannels(token).then(setChannels).catch(console.error)
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('payment') === 'success') {
+      setTimeout(() => {
+        if (token) api.getChannels(token).then(setChannels).catch(console.error)
+      }, 2000)
+      window.history.replaceState({}, '', '/dashboard')
+    }
   }, [token])
 
   async function createChannel(e: React.FormEvent) {
@@ -21,14 +29,24 @@ export default function DashboardPage() {
     setCreating(true)
     setError('')
     try {
-      const ch = await api.createChannel(token, newName.trim())
-      setChannels((prev) => [ch, ...prev])
-      setNewName('')
+      const res = await api.createChannelWithPlan(token, newName.trim(), plan)
+      if (res.adminBypass) {
+        setChannels((prev) => [res.channel, ...prev])
+        setNewName('')
+      } else if (res.url) {
+        window.location.href = res.url
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
       setCreating(false)
     }
+  }
+
+  function utløperTekst(ch: any): string | null {
+    if (!ch.expiresAt) return null
+    const dato = new Date(ch.expiresAt)
+    return `Utløper ${dato.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}`
   }
 
   async function deleteChannel(id: string) {
@@ -63,20 +81,37 @@ export default function DashboardPage() {
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Ny kanal</h2>
-        <form onSubmit={createChannel} className="flex gap-2">
+        <form onSubmit={createChannel} className="space-y-3">
           <input
             type="text"
             placeholder="Navn på kanal"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none transition"
+            className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none transition"
           />
+          <div className="grid grid-cols-2 gap-2">
+            {([['3dager', '3 dager', '199 kr'], ['14dager', '14 dager', '349 kr']] as const).map(([val, label, pris]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setPlan(val)}
+                className={`py-3 rounded-xl border text-sm font-semibold transition ${
+                  plan === val
+                    ? 'bg-brand-600 border-brand-500 text-white'
+                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'
+                }`}
+              >
+                <div>{label}</div>
+                <div className={plan === val ? 'text-brand-200' : 'text-slate-400'}>{pris}</div>
+              </button>
+            ))}
+          </div>
           <button
             type="submit"
             disabled={creating || !newName.trim()}
-            className="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold transition"
+            className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold transition"
           >
-            Opprett
+            {creating ? 'Videresender til betaling…' : 'Opprett og betal →'}
           </button>
         </form>
         {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
@@ -98,6 +133,9 @@ export default function DashboardPage() {
                   <p className="text-slate-400 text-sm font-mono">
                     ID: <span className="text-brand-400">{ch.channelKey}</span>
                   </p>
+                  {utløperTekst(ch) && (
+                    <p className="text-xs text-slate-500 mt-0.5">{utløperTekst(ch)}</p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button

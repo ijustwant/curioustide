@@ -79,6 +79,15 @@ services:
       MINIO_BUCKET: recordings
       MAX_FREE_CHANNELS: ${MAX_FREE_CHANNELS:-3}
       NODE_ENV: development
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-tommylarsen40@gmail.com}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     ports:
       - "4000:4000"
     depends_on:

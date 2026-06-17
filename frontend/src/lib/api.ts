@@ -33,6 +33,9 @@ export const api = {
   createChannel: (token: string, name: string) =>
     request<any>('/channels', { method: 'POST', body: JSON.stringify({ name }) }, token),
 
+  createChannelWithPlan: (token: string, name: string, plan: string) =>
+    request<any>('/payments/checkout', { method: 'POST', body: JSON.stringify({ name, plan }) }, token),
+
   deleteChannel: (token: string, id: string) =>
     request<void>(`/channels/${id}`, { method: 'DELETE' }, token),
 

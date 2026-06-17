@@ -17,13 +17,16 @@ model User {
 }
 
 model Channel {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name       String
-  channelKey String   @unique
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  channelKey String    @unique
+  isActive   Boolean   @default(true)
+  plan       String?                      // "3dager" | "14dager" | "admin"
+  expiresAt  DateTime?                    // null = aldri (admin)
+  firstSentAt DateTime?                   // når første sending startet
+  createdAt  DateTime  @default(now())
   events     Event[]
 }
 

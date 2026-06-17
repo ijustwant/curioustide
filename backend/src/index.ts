@@ -6,6 +6,7 @@ import cron from 'node-cron'
 import authRoutes from './routes/auth'
 import channelRoutes from './routes/channels'
 import eventRoutes from './routes/events'
+import paymentRoutes from './routes/payments'
 import { deleteExpiredRecordings } from './services/recording'
 
 async function main() {
@@ -23,7 +24,8 @@ async function main() {
   const openRoutes = [
     { method: 'POST', url: '/auth/register' },
     { method: 'POST', url: '/auth/login' },
-    { method: 'GET', url: '/health' },
+    { method: 'GET',  url: '/health' },
+    { method: 'POST', url: '/payments/webhook' },  // Stripe signerer selv
   ]
 
   app.addHook('onRequest', async (request, reply) => {
@@ -42,6 +44,7 @@ async function main() {
   await app.register(authRoutes, { prefix: '/auth' })
   await app.register(channelRoutes, { prefix: '/channels' })
   await app.register(eventRoutes, { prefix: '/events' })
+  await app.register(paymentRoutes, { prefix: '/payments' })
 
   app.get('/health', async () => ({ status: 'ok' }))
 
