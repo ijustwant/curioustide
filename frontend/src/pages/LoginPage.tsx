@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
+import { useT } from '../i18n'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const t = useT()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -36,7 +38,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-brand-400">CuriousTide</h1>
-          <p className="text-slate-400 mt-1">Live lyd for arrangementer</p>
+          <p className="text-slate-400 mt-1">{t('app.tagline')}</p>
         </div>
 
         <div className="bg-slate-900 rounded-2xl p-6 shadow-xl border border-slate-800">
@@ -49,7 +51,7 @@ export default function LoginPage() {
                   mode === m ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {m === 'login' ? 'Logg inn' : 'Registrer'}
+                {m === 'login' ? t('auth.login') : t('auth.register')}
               </button>
             ))}
           </div>
@@ -58,7 +60,7 @@ export default function LoginPage() {
             {mode === 'register' && (
               <input
                 type="text"
-                placeholder="Navn (valgfritt)"
+                placeholder={t('auth.name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none transition"
@@ -66,7 +68,7 @@ export default function LoginPage() {
             )}
             <input
               type="email"
-              placeholder="E-post"
+              placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -74,7 +76,7 @@ export default function LoginPage() {
             />
             <input
               type="password"
-              placeholder="Passord"
+              placeholder={t('auth.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -91,9 +93,20 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold transition"
             >
-              {loading ? 'Venter...' : mode === 'login' ? 'Logg inn' : 'Opprett konto'}
+              {loading ? t('auth.loading') : mode === 'login' ? t('auth.login') : t('auth.createAccount')}
             </button>
           </form>
+
+          {mode === 'login' && (
+            <div className="mt-4 text-center">
+              <Link
+                to="/forgot-password"
+                className="text-slate-500 hover:text-slate-300 text-sm transition"
+              >
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

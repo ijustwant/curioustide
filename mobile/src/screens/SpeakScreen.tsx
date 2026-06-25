@@ -8,15 +8,17 @@ import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone, stopTestTone } from '../lib/testTone'
+import { useT } from '../i18n'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Speak'>
 type Status = 'idle' | 'connecting' | 'live' | 'error'
 
-const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
+const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://curioustide.no/livekit'
 
 export default function SpeakScreen({ route, navigation }: Props) {
   const { channelId, channelName, channelKey } = route.params
   const token = useAuthStore((s) => s.token)
+  const t = useT()
   const roomRef = useRef<Room | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [testing, setTesting] = useState(false)
@@ -52,7 +54,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
       const msg = err?.message || String(err)
       const stack = err?.stack ? '\n\n' + err.stack.slice(0, 400) : ''
       console.error('[Speak] feil:', msg, err?.stack)
-      Alert.alert('Feil', msg + stack)
+      Alert.alert('Error', msg + stack)
       setStatus('error')
     }
   }
@@ -79,7 +81,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
       <View style={s.info}>
         <Text style={s.channelName}>{channelName}</Text>
         <View style={s.keyBadge}>
-          <Text style={s.keyLabel}>Kanal-ID</Text>
+          <Text style={s.keyLabel}>{t('speak.channelId')}</Text>
           <Text style={s.keyValue}>{channelKey}</Text>
         </View>
       </View>
@@ -87,7 +89,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
       {status === 'live' && (
         <View style={s.liveBadge}>
           <View style={s.liveDot} />
-          <Text style={s.liveText}>LIVE – sender lyd</Text>
+          <Text style={s.liveText}>{t('speak.live')}</Text>
         </View>
       )}
 
@@ -100,12 +102,12 @@ export default function SpeakScreen({ route, navigation }: Props) {
             activeOpacity={0.8}
           >
             <Text style={s.btnText}>
-              {status === 'connecting' ? 'Kobler til...' : '▶  Start'}
+              {status === 'connecting' ? t('speak.connecting') : t('speak.start')}
             </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={[s.btn, s.stopBtn]} onPress={stopStream} activeOpacity={0.8}>
-            <Text style={s.btnText}>⏹  Stopp</Text>
+            <Text style={s.btnText}>{t('speak.stop')}</Text>
           </TouchableOpacity>
         )}
 
@@ -114,13 +116,11 @@ export default function SpeakScreen({ route, navigation }: Props) {
           onPress={toggleTest}
           activeOpacity={0.8}
         >
-          <Text style={s.btnText}>{testing ? '⏹  Stopp test' : '🔊  Test (2kHz)'}</Text>
+          <Text style={s.btnText}>{testing ? t('speak.testStop') : t('speak.testStart')}</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={s.hint}>
-        Del kanal-ID med lyttere.{'\n'}Test-tonen spiller 2kHz hvert 1,5 sekund.
-      </Text>
+      <Text style={s.hint}>{t('speak.hint')}</Text>
     </View>
   )
 }

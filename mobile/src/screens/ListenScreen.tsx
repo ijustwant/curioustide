@@ -7,14 +7,16 @@ import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone, stopTestTone } from '../lib/testTone'
+import { useT } from '../i18n'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Listen'>
 type Status = 'idle' | 'connecting' | 'listening'
 
-const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://your-domain.com/livekit'
+const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://curioustide.no/livekit'
 
 export default function ListenScreen({ navigation }: Props) {
   const token = useAuthStore((s) => s.token)
+  const t = useT()
   const roomRef = useRef<Room | null>(null)
   const [key, setKey] = useState('')
   const [status, setStatus] = useState<Status>('idle')
@@ -49,7 +51,7 @@ export default function ListenScreen({ navigation }: Props) {
       await room.connect(LIVEKIT_URL, res.token)
       setStatus('listening')
     } catch (err: any) {
-      Alert.alert('Feil', err.message)
+      Alert.alert('Error', err.message)
       AudioSession.stopAudioSession()
       setStatus('idle')
     }
@@ -67,13 +69,13 @@ export default function ListenScreen({ navigation }: Props) {
     <View style={s.root}>
       {status === 'idle' ? (
         <>
-          <Text style={s.label}>Kanal-ID</Text>
+          <Text style={s.label}>{t('listen.channelId')}</Text>
           <TextInput
             style={s.keyInput}
-            placeholder="F.eks. ABC123"
+            placeholder={t('listen.placeholder')}
             placeholderTextColor="#475569"
             value={key}
-            onChangeText={(t) => setKey(t.toUpperCase())}
+            onChangeText={(v) => setKey(v.toUpperCase())}
             autoCapitalize="characters"
             maxLength={8}
             keyboardType="visible-password"
@@ -84,23 +86,23 @@ export default function ListenScreen({ navigation }: Props) {
             disabled={!key.trim()}
             activeOpacity={0.8}
           >
-            <Text style={s.btnText}>🎧  Koble til</Text>
+            <Text style={s.btnText}>{t('listen.connect')}</Text>
           </TouchableOpacity>
         </>
       ) : status === 'connecting' ? (
-        <Text style={s.connectingText}>Kobler til...</Text>
+        <Text style={s.connectingText}>{t('listen.connecting')}</Text>
       ) : (
         <>
           <View style={s.listeningBadge}>
             <View style={s.dot} />
-            <Text style={s.listeningText}>Lytter til</Text>
+            <Text style={s.listeningText}>{t('listen.listeningTo')}</Text>
           </View>
           <Text style={s.listeningChannel}>{channelName}</Text>
           <TouchableOpacity style={[s.btn, s.testBtn, testing && s.disabled]} onPress={testLyd} disabled={testing} activeOpacity={0.8}>
-            <Text style={s.btnText}>{testing ? '🔊  Tester...' : '🔊  Test lyd'}</Text>
+            <Text style={s.btnText}>{testing ? t('listen.testing') : t('listen.testSound')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.btn, s.leaveBtn]} onPress={leave} activeOpacity={0.8}>
-            <Text style={s.btnText}>⏹  Koble fra</Text>
+            <Text style={s.btnText}>{t('listen.disconnect')}</Text>
           </TouchableOpacity>
         </>
       )}

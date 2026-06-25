@@ -8,26 +8,50 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime  @default(now())
-  channels     Channel[]
+  id              String               @id @default(uuid())
+  email           String               @unique
+  passwordHash    String
+  name            String?
+  createdAt       DateTime             @default(now())
+  channels        Channel[]
+  resetTokens     PasswordResetToken[]
+  receivedInvites ChannelInvite[]      @relation("ReceivedInvites")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Channel {
-  id         String    @id @default(uuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name       String
-  channelKey String    @unique
-  isActive   Boolean   @default(true)
-  plan       String?                      // "3dager" | "14dager" | "admin"
-  expiresAt  DateTime?                    // null = aldri (admin)
-  firstSentAt DateTime?                   // når første sending startet
-  createdAt  DateTime  @default(now())
-  events     Event[]
+  id          String          @id @default(uuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  channelKey  String          @unique
+  isActive    Boolean         @default(true)
+  plan        String?
+  expiresAt   DateTime?
+  firstSentAt DateTime?
+  createdAt   DateTime        @default(now())
+  events      Event[]
+  invites     ChannelInvite[]
+}
+
+model ChannelInvite {
+  id            String   @id @default(uuid())
+  channelId     String
+  channel       Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  invitedUserId String
+  invitedUser   User     @relation("ReceivedInvites", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+
+  @@unique([channelId, invitedUserId])
 }
 
 model Event {

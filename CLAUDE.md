@@ -26,11 +26,13 @@ cp .env.example .env
 
 ### 2. Start alle tjenester
 
+**Alltid bruk prod-overlay** (ekte SSL-sertifikat + APK-nedlasting):
+
 ```bash
-docker compose up --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-Åpne `http://localhost` i nettleseren.
+`docker compose up` alene bruker selvsignert sertifikat som bryter HTTPS og login.
 
 ### 3. Kjør backend i utviklingsmodus (uten Docker)
 

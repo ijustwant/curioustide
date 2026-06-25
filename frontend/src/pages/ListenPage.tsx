@@ -4,12 +4,14 @@ import { Room, RoomEvent, RemoteTrack, Track } from 'livekit-client'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone } from '../lib/testTone'
+import { useT } from '../i18n'
 
 type Status = 'idle' | 'connecting' | 'listening' | 'error'
 
 export default function ListenPage() {
   const navigate = useNavigate()
   const token = useAuthStore((s) => s.token)
+  const t = useT()
 
   const roomRef = useRef<Room | null>(null)
   const [key, setKey] = useState('')
@@ -73,16 +75,16 @@ export default function ListenPage() {
         onClick={() => navigate('/')}
         className="self-start mb-6 text-slate-400 hover:text-white transition"
       >
-        ← Tilbake
+        {t('app.back')}
       </button>
 
-      <h1 className="text-2xl font-bold mb-8">🎧 Lytt</h1>
+      <h1 className="text-2xl font-bold mb-8">{t('listen.title')}</h1>
 
       {status === 'idle' || status === 'error' ? (
         <div className="w-full space-y-4">
           <input
             type="text"
-            placeholder="Tast inn kanal-ID (f.eks. ABC123)"
+            placeholder={t('listen.placeholder')}
             value={key}
             onChange={(e) => setKey(e.target.value.toUpperCase())}
             maxLength={8}
@@ -96,18 +98,18 @@ export default function ListenPage() {
             disabled={!key.trim()}
             className="w-full py-5 text-xl font-bold rounded-2xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 transition active:scale-95"
           >
-            🎧 Koble til
+            {t('listen.connect')}
           </button>
         </div>
       ) : (
         <div className="w-full space-y-6 text-center">
           {status === 'connecting' ? (
-            <p className="text-slate-400 text-lg">Kobler til...</p>
+            <p className="text-slate-400 text-lg">{t('listen.connecting')}</p>
           ) : (
             <>
               <div className="flex items-center justify-center gap-2 bg-brand-900/40 text-brand-400 px-4 py-3 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-                Lytter til: <span className="font-bold ml-1">{channelName}</span>
+                {t('listen.listening')} <span className="font-bold ml-1">{channelName}</span>
               </div>
               <div ref={audioContainerRef} className="hidden" />
               <button
@@ -115,13 +117,13 @@ export default function ListenPage() {
                 disabled={testing}
                 className="w-full py-4 text-lg font-semibold rounded-2xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 transition active:scale-95"
               >
-                {testing ? '🔊 Tester...' : '🔊 Test lyd'}
+                {testing ? t('listen.testing') : t('listen.testSound')}
               </button>
               <button
                 onClick={leave}
                 className="w-full py-5 text-xl font-bold rounded-2xl bg-red-700 hover:bg-red-600 transition active:scale-95"
               >
-                ⏹ Koble fra
+                {t('listen.disconnect')}
               </button>
             </>
           )}

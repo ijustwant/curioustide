@@ -382,6 +382,19 @@ async def hent_livekit_token() -> tuple[str, str]:
         svar.raise_for_status()
         jwt = svar.json()["token"]
 
+        # Send e-post med innstillingslenke til pålogget bruker
+        ip = _lokal_ip()
+        try:
+            await klient.post(
+                f"{SERVER}/api/notifications/pi-online",
+                json={"ip": ip, "port": INNST_PORT},
+                headers={"Authorization": f"Bearer {jwt}"},
+                timeout=5,
+            )
+            print(f"  ✉ E-post sendt med innstillingslenke: http://{ip}:{INNST_PORT}")
+        except Exception as e:
+            print(f"  ⚠ Kunne ikke sende e-post: {e}")
+
         svar = await klient.post(
             f"{SERVER}/api/channels/join/{KANAL_ID}",
             headers={"Authorization": f"Bearer {jwt}"},

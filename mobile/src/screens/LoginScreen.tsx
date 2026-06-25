@@ -3,11 +3,17 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
 } from 'react-native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
+import { useT } from '../i18n'
 
-export default function LoginScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>
+
+export default function LoginScreen({ navigation }: Props) {
   const setAuth = useAuthStore((s) => s.setAuth)
+  const t = useT()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,10 +29,7 @@ export default function LoginScreen() {
         mode === 'login'
           ? await api.login(email.trim(), password)
           : await api.register(email.trim(), password, name.trim() || undefined)
-      console.log('[Auth] token mottatt:', result.token ? result.token.slice(0, 20) + '...' : 'MANGLER')
-      console.log('[Auth] user:', JSON.stringify(result.user))
       setAuth(result.token, result.user)
-      console.log('[Auth] setAuth kalt, navigasjon bør skje nå')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -38,13 +41,13 @@ export default function LoginScreen() {
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
       <Text style={s.logo}>CuriousTide</Text>
-      <Text style={s.sub}>Live lyd for arrangementer</Text>
+      <Text style={s.sub}>{t('app.tagline')}</Text>
 
       <View style={s.tabs}>
         {(['login', 'register'] as const).map((m) => (
           <TouchableOpacity key={m} style={[s.tab, mode === m && s.tabActive]} onPress={() => setMode(m)}>
             <Text style={[s.tabText, mode === m && s.tabTextActive]}>
-              {m === 'login' ? 'Logg inn' : 'Registrer'}
+              {m === 'login' ? t('auth.login') : t('auth.register')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -54,7 +57,7 @@ export default function LoginScreen() {
         {mode === 'register' && (
           <TextInput
             style={s.input}
-            placeholder="Navn (valgfritt)"
+            placeholder={t('auth.name')}
             placeholderTextColor="#64748b"
             value={name}
             onChangeText={setName}
@@ -62,7 +65,7 @@ export default function LoginScreen() {
         )}
         <TextInput
           style={s.input}
-          placeholder="E-post"
+          placeholder={t('auth.email')}
           placeholderTextColor="#64748b"
           value={email}
           onChangeText={setEmail}
@@ -71,7 +74,7 @@ export default function LoginScreen() {
         />
         <TextInput
           style={s.input}
-          placeholder="Passord"
+          placeholder={t('auth.password')}
           placeholderTextColor="#64748b"
           value={password}
           onChangeText={setPassword}
@@ -88,9 +91,15 @@ export default function LoginScreen() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={s.btnText}>{mode === 'login' ? 'Logg inn' : 'Opprett konto'}</Text>
+            <Text style={s.btnText}>{mode === 'login' ? t('auth.login') : t('auth.createAccount')}</Text>
           )}
         </TouchableOpacity>
+
+        {mode === 'login' && (
+          <TouchableOpacity style={s.forgotBtn} onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={s.forgotBtnText}>{t('auth.forgotPassword')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -116,4 +125,6 @@ const s = StyleSheet.create({
   error: { color: '#f87171', padding: 12, fontFamily: 'monospace', fontSize: 12 },
   btn: { backgroundColor: '#0284c7', borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
+  forgotBtn: { alignItems: 'center', marginTop: 16 },
+  forgotBtnText: { color: '#475569', fontSize: 14 },
 })

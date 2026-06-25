@@ -2,18 +2,40 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
+import { useT, getLang } from '../i18n'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { token, user, logout } = useAuthStore()
+  const t = useT()
+  const lang = getLang()
   const [channels, setChannels] = useState<any[]>([])
   const [newName, setNewName] = useState('')
   const [plan, setPlan] = useState<'3dager' | '14dager'>('3dager')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
+  const [pendingInvites, setPendingInvites] = useState<any[]>([])
+  const [sharedChannels, setSharedChannels] = useState<any[]>([])
+  const [inviteChannelId, setInviteChannelId] = useState<string | null>(null)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle')
+  const [inviteError, setInviteError] = useState('')
+
+  function loadInvites() {
+    if (token) {
+      api.getInvites(token).then((res) => {
+        setPendingInvites(res.pending)
+        setSharedChannels(res.shared)
+      }).catch(console.error)
+    }
+  }
+
   useEffect(() => {
-    if (token) api.getChannels(token).then(setChannels).catch(console.error)
+    if (token) {
+      api.getChannels(token).then(setChannels).catch(console.error)
+      loadInvites()
+    }
     const params = new URLSearchParams(window.location.search)
     if (params.get('payment') === 'success') {
       setTimeout(() => {
@@ -43,10 +65,11 @@ export default function DashboardPage() {
     }
   }
 
-  function utløperTekst(ch: any): string | null {
+  function expiryLabel(ch: any): string | null {
     if (!ch.expiresAt) return null
     const dato = new Date(ch.expiresAt)
-    return `Utløper ${dato.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}`
+    const locale = lang === 'en' ? 'en-GB' : 'nb-NO'
+    return `${t('dashboard.expires')} ${dato.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`
   }
 
   async function deleteChannel(id: string) {
@@ -55,6 +78,46 @@ export default function DashboardPage() {
     setChannels((prev) => prev.filter((c) => c.id !== id))
   }
 
+  async function sendInvite(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token || !inviteChannelId || !inviteEmail.trim()) return
+    setInviteStatus('sending')
+    setInviteError('')
+    try {
+      await api.inviteSpeaker(token, inviteChannelId, inviteEmail.trim())
+      setInviteStatus('ok')
+      setInviteEmail('')
+    } catch (err: any) {
+      setInviteError(err.message)
+      setInviteStatus('error')
+    }
+  }
+
+  async function acceptInvite(inviteId: string) {
+    if (!token) return
+    await api.acceptInvite(token, inviteId)
+    loadInvites()
+  }
+
+  function openInviteForm(channelId: string) {
+    setInviteChannelId(channelId)
+    setInviteEmail('')
+    setInviteStatus('idle')
+    setInviteError('')
+  }
+
+  function closeInviteForm() {
+    setInviteChannelId(null)
+    setInviteEmail('')
+    setInviteStatus('idle')
+    setInviteError('')
+  }
+
+  const planOptions: Array<['3dager' | '14dager', string, string]> = [
+    ['3dager', t('plan.days3'), t('plan.price3')],
+    ['14dager', t('plan.days14'), t('plan.price14')],
+  ]
+
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
       <header className="flex items-center justify-between mb-8">
@@ -62,12 +125,30 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-brand-400">CuriousTide</h1>
           <p className="text-slate-400 text-sm">{user?.email}</p>
         </div>
-        <button
-          onClick={logout}
-          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm font-medium transition"
-        >
-          Logg ut
-        </button>
+        <div className="flex gap-2">
+          {user?.email === 'tommylarsen40@gmail.com' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-medium transition"
+              title="Admin"
+            >
+              ⚙
+            </button>
+          )}
+          <button
+            onClick={() => navigate('/help')}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-medium transition"
+            title={t('help.title')}
+          >
+            {t('dashboard.help')}
+          </button>
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm font-medium transition"
+          >
+            {t('auth.logout')}
+          </button>
+        </div>
       </header>
 
       <button
@@ -75,22 +156,22 @@ export default function DashboardPage() {
         className="w-full mb-8 py-6 rounded-2xl bg-brand-600 hover:bg-brand-500 active:scale-[.98] transition-all flex flex-col items-center gap-1 shadow-lg shadow-brand-900/40"
       >
         <span className="text-4xl">🎧</span>
-        <span className="text-2xl font-bold tracking-wide">Lytt</span>
-        <span className="text-brand-200 text-sm">Koble til en kanal og lytt</span>
+        <span className="text-2xl font-bold tracking-wide">{t('dashboard.listen')}</span>
+        <span className="text-brand-200 text-sm">{t('dashboard.listenSub')}</span>
       </button>
 
       <section className="mb-8">
-        <h2 className="text-lg font-semibold mb-3">Ny kanal</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('dashboard.newChannel')}</h2>
         <form onSubmit={createChannel} className="space-y-3">
           <input
             type="text"
-            placeholder="Navn på kanal"
+            placeholder={t('dashboard.channelName')}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none transition"
           />
           <div className="grid grid-cols-2 gap-2">
-            {([['3dager', '3 dager', '199 kr'], ['14dager', '14 dager', '349 kr']] as const).map(([val, label, pris]) => (
+            {planOptions.map(([val, label, pris]) => (
               <button
                 key={val}
                 type="button"
@@ -111,19 +192,124 @@ export default function DashboardPage() {
             disabled={creating || !newName.trim()}
             className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold transition"
           >
-            {creating ? 'Videresender til betaling…' : 'Opprett og betal →'}
+            {creating ? t('dashboard.redirecting') : t('dashboard.createAndPay')}
           </button>
         </form>
         {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">Mine kanaler</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('dashboard.myChannels')}</h2>
         {channels.length === 0 ? (
-          <p className="text-slate-400">Ingen kanaler ennå.</p>
+          <p className="text-slate-400">{t('dashboard.noChannels')}</p>
         ) : (
           <div className="space-y-3">
             {channels.map((ch) => (
+              <div key={ch.id} className="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold">{ch.name}</p>
+                    <p className="text-slate-400 text-sm font-mono">
+                      ID: <span className="text-brand-400">{ch.channelKey}</span>
+                    </p>
+                    {expiryLabel(ch) && (
+                      <p className="text-xs text-slate-500 mt-0.5">{expiryLabel(ch)}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => navigate(`/speak/${ch.id}`)}
+                      className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-sm font-semibold transition"
+                    >
+                      🎙️ {t('dashboard.send')}
+                    </button>
+                    <button
+                      onClick={() => openInviteForm(ch.id)}
+                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm transition"
+                      title={t('invite.button')}
+                    >
+                      👤+
+                    </button>
+                    <button
+                      onClick={() => deleteChannel(ch.id)}
+                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {inviteChannelId === ch.id && (
+                  <form onSubmit={sendInvite} className="mt-3 flex flex-col gap-2">
+                    <input
+                      type="email"
+                      placeholder={t('invite.emailPlaceholder')}
+                      value={inviteEmail}
+                      onChange={(e) => { setInviteEmail(e.target.value); setInviteStatus('idle') }}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none text-sm transition"
+                    />
+                    {inviteStatus === 'ok' && (
+                      <p className="text-green-400 text-sm">{t('invite.ok')}</p>
+                    )}
+                    {inviteStatus === 'error' && (
+                      <p className="text-red-400 text-sm">{inviteError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={inviteStatus === 'sending' || !inviteEmail.trim()}
+                        className="flex-1 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-sm font-semibold transition"
+                      >
+                        {inviteStatus === 'sending' ? t('invite.sending') : t('invite.send')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={closeInviteForm}
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm transition"
+                      >
+                        {t('invite.cancel')}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {pendingInvites.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold mb-3">{t('invite.pendingTitle')}</h2>
+          <div className="space-y-3">
+            {pendingInvites.map((inv) => (
+              <div
+                key={inv.id}
+                className="bg-slate-900 rounded-2xl p-4 border border-brand-800 flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-semibold">{inv.channelName}</p>
+                  <p className="text-slate-400 text-xs mt-0.5">
+                    {t('invite.invitedBy')} {inv.ownerEmail}
+                  </p>
+                </div>
+                <button
+                  onClick={() => acceptInvite(inv.id)}
+                  className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-sm font-semibold transition"
+                >
+                  {t('invite.accept')}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sharedChannels.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold mb-3">{t('invite.sharedTitle')}</h2>
+          <div className="space-y-3">
+            {sharedChannels.map((ch) => (
               <div
                 key={ch.id}
                 className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-center justify-between"
@@ -133,29 +319,18 @@ export default function DashboardPage() {
                   <p className="text-slate-400 text-sm font-mono">
                     ID: <span className="text-brand-400">{ch.channelKey}</span>
                   </p>
-                  {utløperTekst(ch) && (
-                    <p className="text-xs text-slate-500 mt-0.5">{utløperTekst(ch)}</p>
-                  )}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigate(`/speak/${ch.id}`)}
-                    className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-sm font-semibold transition"
-                  >
-                    🎙️ Send
-                  </button>
-                  <button
-                    onClick={() => deleteChannel(ch.id)}
-                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm transition"
-                  >
-                    ✕
-                  </button>
-                </div>
+                <button
+                  onClick={() => navigate(`/speak/${ch.id}`)}
+                  className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-sm font-semibold transition"
+                >
+                  🎙️ {t('dashboard.send')}
+                </button>
               </div>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   )
 }

@@ -28,6 +28,43 @@ export default async function channelRoutes(app: FastifyInstance) {
     return channels
   })
 
+  // Hent ventende invitasjoner og delte kanaler for innlogget bruker
+  app.get('/invites', async (request) => {
+    const { sub } = request.user as { sub: string }
+    const pending = await prisma.channelInvite.findMany({
+      where: { invitedUserId: sub, status: 'pending' },
+      include: { channel: { include: { user: true } } },
+      orderBy: { createdAt: 'desc' },
+    })
+    const accepted = await prisma.channelInvite.findMany({
+      where: { invitedUserId: sub, status: 'accepted' },
+      include: { channel: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    return {
+      pending: pending.map((i) => ({
+        id: i.id,
+        channelName: i.channel.name,
+        channelId: i.channel.id,
+        ownerEmail: i.channel.user.email,
+        createdAt: i.createdAt,
+      })),
+      shared: accepted.map((i) => i.channel),
+    }
+  })
+
+  // Godta invitasjon
+  app.post('/invites/:inviteId/accept', async (request, reply) => {
+    const { sub } = request.user as { sub: string }
+    const { inviteId } = request.params as { inviteId: string }
+    const invite = await prisma.channelInvite.findFirst({
+      where: { id: inviteId, invitedUserId: sub, status: 'pending' },
+    })
+    if (!invite) return reply.status(404).send({ error: 'Invitasjon ikke funnet' })
+    await prisma.channelInvite.update({ where: { id: inviteId }, data: { status: 'accepted' } })
+    return { ok: true }
+  })
+
   // Direkte opprettelse (kun admin – alle andre går via /payments/checkout)
   app.post('/', async (request, reply) => {
     const { sub, email } = request.user as { sub: string; email: string }
@@ -42,6 +79,35 @@ export default async function channelRoutes(app: FastifyInstance) {
       data: { userId: sub, name: body.data.name, channelKey, plan: 'admin', expiresAt: null },
     })
     return reply.status(201).send(channel)
+  })
+
+  // Inviter en annen bruker som medtaler
+  app.post('/:id/invite', async (request, reply) => {
+    const { sub } = request.user as { sub: string }
+    const { id } = request.params as { id: string }
+    const body = z.object({ email: z.string().email() }).safeParse(request.body)
+    if (!body.success) return reply.status(400).send({ error: 'Ugyldig e-post' })
+
+    const channel = await prisma.channel.findFirst({ where: { id, userId: sub } })
+    if (!channel) return reply.status(404).send({ error: 'Kanal ikke funnet' })
+
+    const invitedUser = await prisma.user.findUnique({ where: { email: body.data.email } })
+    if (!invitedUser) return reply.status(404).send({ error: 'Bruker ikke funnet' })
+    if (invitedUser.id === sub) return reply.status(400).send({ error: 'Du kan ikke invitere deg selv' })
+
+    const existing = await prisma.channelInvite.findFirst({
+      where: { channelId: id, invitedUserId: invitedUser.id },
+    })
+    if (existing) {
+      if (existing.status === 'pending') return reply.status(409).send({ error: 'Allerede invitert' })
+      await prisma.channelInvite.update({ where: { id: existing.id }, data: { status: 'pending' } })
+      return reply.status(200).send({ ok: true })
+    }
+
+    await prisma.channelInvite.create({
+      data: { channelId: id, invitedUserId: invitedUser.id },
+    })
+    return reply.status(201).send({ ok: true })
   })
 
   app.delete('/:id', async (request, reply) => {
@@ -62,7 +128,11 @@ export default async function channelRoutes(app: FastifyInstance) {
     if (!channel) return reply.status(404).send({ error: 'Channel not found' })
     if (erUtløpt(channel)) return reply.status(410).send({ error: 'Kanalen har utløpt' })
 
-    const canPublish = role === 'speaker' && channel.userId === sub
+    const isOwner = channel.userId === sub
+    const invite = role === 'speaker' && !isOwner
+      ? await prisma.channelInvite.findFirst({ where: { channelId: id, invitedUserId: sub, status: 'accepted' } })
+      : null
+    const canPublish = role === 'speaker' && (isOwner || !!invite)
 
     // Start timer ved første sending
     if (canPublish && !channel.firstSentAt && channel.plan && PLAN_DAGER[channel.plan]) {

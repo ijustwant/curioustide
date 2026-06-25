@@ -31,14 +31,23 @@
       "bundleIdentifier": "com.curioustide.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "CuriousTide trenger mikrofon for å sende lyd.",
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "plugins": [
       [
         "expo-av",
-        { "microphonePermission": "CuriousTide trenger mikrofon for å sende lyd." }
+        {
+          "microphonePermission": "CuriousTide trenger mikrofon for å sende lyd."
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dcd3bb76-9468-4bad-a882-8bf464658659"
+      }
+    }
   }
 }

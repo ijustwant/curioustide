@@ -29,3 +29,9 @@ mobile/dist-android/
 mobile/apk-serve/
 mobile/expo-build/
 nginx/certs/
+
+# Downloads (APK-filer, store binærfiler)
+downloads/*.apk
+
+# Signeringsnøkler
+mobile/*.keystore

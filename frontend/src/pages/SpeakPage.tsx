@@ -8,6 +8,7 @@ import {
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone, stopTestTone } from '../lib/testTone'
+import { useT } from '../i18n'
 
 type Status = 'idle' | 'connecting' | 'live' | 'error'
 
@@ -15,6 +16,7 @@ export default function SpeakPage() {
   const { channelId } = useParams<{ channelId: string }>()
   const navigate = useNavigate()
   const token = useAuthStore((s) => s.token)
+  const t = useT()
 
   const roomRef = useRef<Room | null>(null)
   const [status, setStatus] = useState<Status>('idle')
@@ -30,9 +32,7 @@ export default function SpeakPage() {
     setError('')
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error(
-          'Mikrofon er ikke tilgjengelig. Åpne siden via https:// eller http://localhost — Chrome blokkerer mikrofon på HTTP med IP-adresse.'
-        )
+        throw new Error(t('speak.micError'))
       }
 
       const { token: lvToken, channelKey: key } = await api.getChannelToken(
@@ -83,20 +83,20 @@ export default function SpeakPage() {
         onClick={() => navigate('/')}
         className="self-start mb-6 text-slate-400 hover:text-white transition"
       >
-        ← Tilbake
+        {t('app.back')}
       </button>
 
-      <h1 className="text-2xl font-bold mb-2">🎙️ Send lyd</h1>
+      <h1 className="text-2xl font-bold mb-2">{t('speak.title')}</h1>
       {channelKey && (
         <p className="text-slate-400 mb-8 font-mono">
-          Kanal: <span className="text-brand-400 font-bold text-xl">{channelKey}</span>
+          {t('speak.channel')} <span className="text-brand-400 font-bold text-xl">{channelKey}</span>
         </p>
       )}
 
       {status === 'live' && (
         <div className="flex items-center gap-2 mb-6 bg-green-900/40 text-green-400 px-4 py-2 rounded-full">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          LIVE – sender lyd
+          {t('speak.live')}
         </div>
       )}
 
@@ -111,14 +111,14 @@ export default function SpeakPage() {
             disabled={status === 'connecting'}
             className="w-full py-6 text-xl font-bold rounded-2xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 transition active:scale-95"
           >
-            {status === 'connecting' ? 'Kobler til...' : '▶ Start'}
+            {status === 'connecting' ? t('speak.connecting') : t('speak.start')}
           </button>
         ) : (
           <button
             onClick={stopStream}
             className="w-full py-6 text-xl font-bold rounded-2xl bg-red-700 hover:bg-red-600 transition active:scale-95"
           >
-            ⏹ Stopp
+            {t('speak.stop')}
           </button>
         )}
 
@@ -130,12 +130,12 @@ export default function SpeakPage() {
               : 'bg-slate-800 hover:bg-slate-700'
           }`}
         >
-          {testing ? '⏹ Stopp test-tone' : '🔊 Test (2kHz)'}
+          {testing ? t('speak.testStop') : t('speak.testStart')}
         </button>
       </div>
 
       <p className="text-slate-500 text-xs mt-8 text-center">
-        Gi kanalkoden til lyttere. Test-tonen spiller 2kHz hvert 1,5 sekund.
+        {t('speak.hint')}
       </p>
     </div>
   )

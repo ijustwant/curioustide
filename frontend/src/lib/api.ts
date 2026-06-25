@@ -27,6 +27,16 @@ export const api = {
       '/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }
     ),
 
+  forgotPassword: (email: string) =>
+    request<{ ok: boolean }>(
+      '/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }
+    ),
+
+  resetPassword: (token: string, password: string) =>
+    request<{ ok: boolean }>(
+      '/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, password }) }
+    ),
+
   getChannels: (token: string) =>
     request<any[]>('/channels', {}, token),
 
@@ -65,4 +75,27 @@ export const api = {
 
   getDownloadUrl: (token: string, eventId: string) =>
     request<{ url: string }>(`/events/${eventId}/download`, {}, token),
+
+  // Invitations
+  getInvites: (token: string) =>
+    request<{ pending: any[]; shared: any[] }>('/channels/invites', {}, token),
+
+  inviteSpeaker: (token: string, channelId: string, email: string) =>
+    request<{ ok: boolean }>(`/channels/${channelId}/invite`, { method: 'POST', body: JSON.stringify({ email }) }, token),
+
+  acceptInvite: (token: string, inviteId: string) =>
+    request<{ ok: boolean }>(`/channels/invites/${inviteId}/accept`, { method: 'POST' }, token),
+
+  // Admin
+  adminGetUsers: (token: string) =>
+    request<any[]>('/admin/users', {}, token),
+
+  adminGetChannels: (token: string, userId: string) =>
+    request<any[]>(`/admin/users/${userId}/channels`, {}, token),
+
+  adminDeleteUser: (token: string, userId: string) =>
+    request<void>(`/admin/users/${userId}`, { method: 'DELETE' }, token),
+
+  adminDeleteChannel: (token: string, userId: string, channelId: string) =>
+    request<void>(`/admin/users/${userId}/channels/${channelId}`, { method: 'DELETE' }, token),
 }

@@ -1,0 +1,33 @@
+services:
+  nginx:
+    image: nginx:alpine
+    build: !reset null
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - ./downloads:/var/www/download:ro
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+
+  backend:
+    environment:
+      NODE_ENV: production
+      FRONTEND_URL: https://curioustide.no
+
+  frontend:
+    environment:
+      VITE_LIVEKIT_URL: wss://curioustide.no/livekit
+
+  livekit:
+    volumes:
+      - ./livekit/livekit.prod.yaml:/etc/livekit/livekit.yaml:ro
+
+volumes:
+  certbot_www:
+  certbot_certs:
