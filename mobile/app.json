@@ -36,6 +36,7 @@
         ]
       }
     },
+    "scheme": "curioustide",
     "plugins": [
       [
         "expo-av",

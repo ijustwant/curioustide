@@ -64,7 +64,7 @@ export default async function paymentRoutes(app: FastifyInstance) {
         quantity: 1,
       }],
       metadata: { userId: sub, channelName: name.trim(), plan },
-      success_url: `${baseUrl}/dashboard?payment=success`,
+      success_url: `${baseUrl}/payment-success`,
       cancel_url:  `${baseUrl}/dashboard?payment=cancelled`,
     })
 

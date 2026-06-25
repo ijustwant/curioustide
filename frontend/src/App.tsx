@@ -8,6 +8,7 @@ import SpeakPage from './pages/SpeakPage'
 import ListenPage from './pages/ListenPage'
 import HelpPage from './pages/HelpPage'
 import AdminPage from './pages/AdminPage'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/listen" element={<ProtectedRoute><ListenPage /></ProtectedRoute>} />
         <Route path="/help" element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+        <Route path="/payment-success" element={<PaymentSuccessPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

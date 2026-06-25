@@ -1,4 +1,4 @@
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { registerGlobals } from '@livekit/react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -25,6 +25,16 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 
 registerGlobals()
 
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['curioustide://'],
+  config: {
+    screens: {
+      Dashboard: 'dashboard',
+      Login: 'login',
+    },
+  },
+}
+
 export default function App() {
   const token = useAuthStore((s) => s.token)
   const lang = getLang()
@@ -38,7 +48,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <Stack.Navigator
             screenOptions={{
               headerStyle: { backgroundColor: '#0f172a' },

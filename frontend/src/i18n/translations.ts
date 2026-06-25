@@ -125,6 +125,12 @@ export const translations = {
     'plan.price3': '199 kr',
     'plan.price14': '349 kr',
 
+    // Payment success
+    'payment.successTitle': 'Betaling fullført!',
+    'payment.successBody': 'Kanalen din er opprettet. Gå tilbake til appen for å bruke den.',
+    'payment.openApp': 'Åpne appen',
+    'payment.openWeb': 'Gå til nettsiden',
+
     // Email
     'email.timerSubject': (channelName: string) => `Timeren har startet – kanal «${channelName}»`,
     'email.timerBody': (channelName: string, dato: string) => [
@@ -260,6 +266,12 @@ export const translations = {
     'plan.days14': '14 days',
     'plan.price3': '199 NOK',
     'plan.price14': '349 NOK',
+
+    // Payment success
+    'payment.successTitle': 'Payment complete!',
+    'payment.successBody': 'Your channel has been created. Return to the app to use it.',
+    'payment.openApp': 'Open app',
+    'payment.openWeb': 'Go to website',
 
     // Email
     'email.timerSubject': (channelName: string) => `Timer started – channel "${channelName}"`,
