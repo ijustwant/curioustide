@@ -84,6 +84,28 @@ export default function DashboardScreen({ navigation }: Props) {
     setCreating(false)
   }
 
+  async function deleteChannel(id: string, name: string) {
+    if (!token) return
+    Alert.alert(
+      t('dashboard.deleteTitle'),
+      t('dashboard.deleteConfirm').replace('{name}', name),
+      [
+        { text: t('invite.cancel'), style: 'cancel' },
+        {
+          text: '🗑️ Slett', style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.deleteChannel(token, id)
+              setChannels((prev) => prev.filter((c: any) => c.id !== id))
+            } catch (err: any) {
+              Alert.alert(t('dashboard.error'), err.message)
+            }
+          },
+        },
+      ]
+    )
+  }
+
   async function sendInvite() {
     if (!token || !inviteChannelId || !inviteEmail.trim()) return
     setInviteStatus('sending')
@@ -221,6 +243,13 @@ export default function DashboardScreen({ navigation }: Props) {
                     activeOpacity={0.8}
                   >
                     <Text style={s.inviteBtnText}>👤+</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={s.deleteBtn}
+                    onPress={() => deleteChannel(item.id, item.name)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={s.deleteBtnText}>✕</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -362,6 +391,8 @@ const s = StyleSheet.create({
   speakBtnWrap: { backgroundColor: '#0284c7', borderRadius: 14, width: 64, height: 64, justifyContent: 'center', alignItems: 'center' },
   speakBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 12, textAlign: 'center' },
   inviteBtn: { backgroundColor: '#1e293b', borderRadius: 12, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  deleteBtn: { backgroundColor: '#1e293b', borderRadius: 12, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  deleteBtnText: { color: '#94a3b8', fontSize: 16 },
   inviteBtnText: { fontSize: 18 },
   inviteForm: { marginTop: 14, gap: 8 },
   inviteInput: { backgroundColor: '#1e293b', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, color: '#f1f5f9', fontSize: 15 },

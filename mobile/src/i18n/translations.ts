@@ -29,6 +29,8 @@ export const translations = {
     'dashboard.createAndPay': 'Opprett og betal →',
     'dashboard.myChannels': 'Mine kanaler',
     'dashboard.noChannels': 'Ingen kanaler ennå.',
+    'dashboard.deleteTitle': 'Slett kanal',
+    'dashboard.deleteConfirm': 'Er du sikker på at du vil slette «{name}»? Dette kan ikke angres.',
     'dashboard.expires': 'Utløper',
     'dashboard.send': 'Send',
     'dashboard.error': 'Feil',
@@ -59,10 +61,12 @@ export const translations = {
         tittel: '🎙️ Slik sender du lyd',
         innhold: [
           'Opprett en kanal fra dashbordet og velg ønsket varighet (3 eller 14 dager).',
-          'Etter betaling finner du kanalen i listen. Trykk "Send" for å starte.',
+          'Betaling skjer via Stripe. Etter betaling sendes du tilbake til appen, og kanalen er klar i listen.',
+          'Trykk "Send" på kanalen for å starte sendingen.',
           'Koble til en Bluetooth-mikrofon for best lydkvalitet.',
-          'Timeren starter første gang du trykker "Send" — ikke ved opprettelse.',
+          'Timeren starter første gang du trykker "Send" — ikke ved opprettelse eller betaling.',
           'Du kan stoppe og starte sendingen igjen uten at timeren nullstilles.',
+          'Du får en e-post når timeren starter, med dato for når kanalen utløper.',
         ],
       },
       {
@@ -70,8 +74,21 @@ export const translations = {
         innhold: [
           'Trykk på den store "Lytt"-knappen øverst på dashbordet.',
           'Skriv inn kanal-ID-en du har fått fra senderen (f.eks. AB12CD).',
+          'Trykk "Koble til" — lyden starter automatisk når senderen er aktiv.',
+          'Bruk "Test lyd"-knappen for å sjekke at høyttaleren din virker.',
           'Du kan lytte fra mobil eller nettleser — ingen app nødvendig for lyttere.',
           'Del nettadressen curioustide.no med dem som skal lytte.',
+        ],
+      },
+      {
+        tittel: '👥 Invitere medtalere',
+        innhold: [
+          'Du kan invitere andre til å sende lyd på kanalen din.',
+          'Trykk på "Inviter taler"-knappen på kanalen i dashbordet.',
+          'Skriv inn e-postadressen til medtaleren og trykk "Inviter".',
+          'Medtaleren mottar en e-post og ser invitasjonen under "Invitasjoner" i sin app.',
+          'Etter at invitasjonen er godtatt, kan medtaleren sende lyd på kanalen.',
+          'Delte kanaler vises under "Delte kanaler" i dashbordet.',
         ],
       },
       {
@@ -80,7 +97,16 @@ export const translations = {
           '3 dager — 199 kr. Timeren starter ved første sending.',
           '14 dager — 349 kr. Timeren starter ved første sending.',
           'Kanalen er tilgjengelig i hele perioden, uavhengig av hvor mye du sender.',
-          'Du mottar en e-post når timeren starter, med dato for når kanalen utløper.',
+          'En kanal kan slettes fra dashbordet ved å trykke på krysset (✕). Du blir bedt om å bekrefte før sletting.',
+        ],
+      },
+      {
+        tittel: '🔑 Konto og passord',
+        innhold: [
+          'Opprett konto med e-post og passord. Navn er valgfritt.',
+          'Har du glemt passordet? Trykk "Glemt passord?" på innloggingssiden.',
+          'Du mottar en e-post med en lenke for å sette nytt passord.',
+          'Lenken er gyldig i 1 time. Be om en ny om den er utløpt.',
         ],
       },
       {
@@ -89,6 +115,7 @@ export const translations = {
           'Lyden streames via WebRTC med Opus-codec — typisk forsinkelse er 20–100 ms.',
           'Krever god internettforbindelse hos sender (minst 1 Mbit/s opplasting).',
           'Lyttere bruker svært lite data og kan lytte på mobilnett.',
+          'Hvis mikrofonen ikke virker, sjekk at appen har fått tillatelse under telefoninnstillinger.',
         ],
       },
     ],
@@ -142,6 +169,8 @@ export const translations = {
     'dashboard.createAndPay': 'Create and pay →',
     'dashboard.myChannels': 'My channels',
     'dashboard.noChannels': 'No channels yet.',
+    'dashboard.deleteTitle': 'Delete channel',
+    'dashboard.deleteConfirm': 'Are you sure you want to delete "{name}"? This cannot be undone.',
     'dashboard.expires': 'Expires',
     'dashboard.send': 'Send',
     'dashboard.error': 'Error',
@@ -172,10 +201,12 @@ export const translations = {
         tittel: '🎙️ How to broadcast',
         innhold: [
           'Create a channel from the dashboard and choose your desired duration (3 or 14 days).',
-          'After payment, find the channel in your list and tap "Send" to start.',
+          'Payment is handled via Stripe. After payment you are returned to the app and the channel appears in your list.',
+          'Tap "Send" on the channel to start broadcasting.',
           'Connect a Bluetooth microphone for best audio quality.',
-          'The timer starts the first time you tap "Send" — not at creation.',
+          'The timer starts the first time you tap "Send" — not at creation or payment.',
           'You can stop and restart the broadcast without resetting the timer.',
+          'You will receive an email when the timer starts, with the date your channel expires.',
         ],
       },
       {
@@ -183,8 +214,21 @@ export const translations = {
         innhold: [
           'Tap the large "Listen" button at the top of the dashboard.',
           'Enter the channel ID you received from the broadcaster (e.g. AB12CD).',
+          'Tap "Connect" — audio starts automatically when the broadcaster is active.',
+          'Use the "Test audio" button to verify your speaker is working.',
           'You can listen from mobile or browser — no app required for listeners.',
           'Share curioustide.com with anyone who wants to listen.',
+        ],
+      },
+      {
+        tittel: '👥 Inviting co-speakers',
+        innhold: [
+          'You can invite others to broadcast on your channel.',
+          'Tap the "Invite speaker" button on a channel in the dashboard.',
+          'Enter the co-speaker\'s email address and tap "Invite".',
+          'They will receive an email and see the invitation under "Invitations" in their app.',
+          'Once accepted, the co-speaker can broadcast on your channel.',
+          'Shared channels appear under "Shared channels" in the dashboard.',
         ],
       },
       {
@@ -193,7 +237,16 @@ export const translations = {
           '3 days — 199 NOK. The timer starts on first broadcast.',
           '14 days — 349 NOK. The timer starts on first broadcast.',
           'The channel is available for the entire period, regardless of how much you broadcast.',
-          'You will receive an email when the timer starts, with the expiry date.',
+          'A channel can be deleted from the dashboard by tapping the ✕ button. You will be asked to confirm before deletion.',
+        ],
+      },
+      {
+        tittel: '🔑 Account and password',
+        innhold: [
+          'Create an account with email and password. Name is optional.',
+          'Forgot your password? Tap "Forgot password?" on the login screen.',
+          'You will receive an email with a link to set a new password.',
+          'The link is valid for 1 hour. Request a new one if it has expired.',
         ],
       },
       {
@@ -202,6 +255,7 @@ export const translations = {
           'Audio is streamed via WebRTC with Opus codec — typical latency is 20–100 ms.',
           'Requires a good internet connection for the broadcaster (at least 1 Mbit/s upload).',
           'Listeners use very little data and can listen on mobile networks.',
+          'If the microphone does not work, check that the app has been granted permission in your phone settings.',
         ],
       },
     ],

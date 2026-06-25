@@ -88,7 +88,7 @@ export default function ListenPage() {
             value={key}
             onChange={(e) => setKey(e.target.value.toUpperCase())}
             maxLength={8}
-            className="w-full px-4 py-4 text-center text-2xl font-mono tracking-widest rounded-2xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none uppercase"
+            className="w-full px-4 py-4 text-center text-2xl font-mono tracking-widest rounded-2xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none uppercase placeholder:text-sm placeholder:tracking-normal placeholder:font-sans"
           />
           {error && (
             <p className="text-red-400 text-sm text-center">{error}</p>

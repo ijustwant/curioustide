@@ -4,16 +4,8 @@ services:
     build: !reset null
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      - certbot_www:/var/www/certbot:ro
-      - certbot_certs:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./downloads:/var/www/download:ro
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - certbot_www:/var/www/certbot
-      - certbot_certs:/etc/letsencrypt
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
 
   backend:
     environment:
@@ -27,7 +19,3 @@ services:
   livekit:
     volumes:
       - ./livekit/livekit.prod.yaml:/etc/livekit/livekit.yaml:ro
-
-volumes:
-  certbot_www:
-  certbot_certs:

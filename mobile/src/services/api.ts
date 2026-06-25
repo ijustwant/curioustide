@@ -53,6 +53,9 @@ export const api = {
       '/payments/checkout', { method: 'POST', body: JSON.stringify({ name, plan }) }, token
     ),
 
+  deleteChannel: (token: string, id: string) =>
+    request<void>(`/channels/${id}`, { method: 'DELETE' }, token),
+
   joinByKey: (token: string, key: string) =>
     request<{ token: string; roomName: string; channelName: string }>(
       `/channels/join/${key}`, { method: 'POST', body: JSON.stringify({}) }, token
