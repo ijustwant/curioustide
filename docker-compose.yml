@@ -100,10 +100,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://192.168.50.10:7880}
     restart: unless-stopped
-    environment:
-      VITE_API_URL: ${VITE_API_URL:-/api}
-      VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://192.168.50.10:7880}
 
   nginx:
     build:
