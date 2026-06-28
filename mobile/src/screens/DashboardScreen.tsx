@@ -17,7 +17,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const lang = getLang()
   const [channels, setChannels] = useState<any[]>([])
   const [newName, setNewName] = useState('')
-  const [plan, setPlan] = useState<'3dager' | '14dager'>('3dager')
+  const [plan, setPlan] = useState<'3dager' | '7dager'>('3dager')
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const appState = useRef(AppState.currentState)
@@ -148,9 +148,9 @@ export default function DashboardScreen({ navigation }: Props) {
     return `${t('dashboard.expires')} ${dato.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`
   }
 
-  const planOptions: Array<{ value: '3dager' | '14dager'; label: string; pris: string }> = [
+  const planOptions: Array<{ value: '3dager' | '7dager'; label: string; pris: string }> = [
     { value: '3dager',  label: t('plan.days3'),  pris: t('plan.price3') },
-    { value: '14dager', label: t('plan.days14'), pris: t('plan.price14') },
+    { value: '7dager', label: t('plan.days14'), pris: t('plan.price14') },
   ]
 
   return (

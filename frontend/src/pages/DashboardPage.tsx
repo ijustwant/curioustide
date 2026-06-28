@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const lang = getLang()
   const [channels, setChannels] = useState<any[]>([])
   const [newName, setNewName] = useState('')
-  const [plan, setPlan] = useState<'3dager' | '14dager'>('3dager')
+  const [plan, setPlan] = useState<'3dager' | '7dager'>('3dager')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
 
@@ -72,8 +72,10 @@ export default function DashboardPage() {
     return `${t('dashboard.expires')} ${dato.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`
   }
 
-  async function deleteChannel(id: string) {
+  async function deleteChannel(id: string, name: string) {
     if (!token) return
+    const msg = t('dashboard.deleteConfirm').replace('{name}', name)
+    if (!window.confirm(msg)) return
     await api.deleteChannel(token, id)
     setChannels((prev) => prev.filter((c) => c.id !== id))
   }
@@ -113,9 +115,9 @@ export default function DashboardPage() {
     setInviteError('')
   }
 
-  const planOptions: Array<['3dager' | '14dager', string, string]> = [
+  const planOptions: Array<['3dager' | '7dager', string, string]> = [
     ['3dager', t('plan.days3'), t('plan.price3')],
-    ['14dager', t('plan.days14'), t('plan.price14')],
+    ['7dager', t('plan.days14'), t('plan.price14')],
   ]
 
   return (
@@ -231,7 +233,7 @@ export default function DashboardPage() {
                       👤+
                     </button>
                     <button
-                      onClick={() => deleteChannel(ch.id)}
+                      onClick={() => deleteChannel(ch.id, ch.name)}
                       className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-red-900 text-sm transition"
                     >
                       ✕

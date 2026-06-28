@@ -106,8 +106,8 @@ export const translations = {
       {
         tittel: '⏱️ Priser og varighet',
         innhold: [
-          '3 dager — 199 kr. Timeren starter ved første sending.',
-          '14 dager — 349 kr. Timeren starter ved første sending.',
+          '3 dager — 249 kr. Timeren starter ved første sending.',
+          '7 dager — 399 kr. Timeren starter ved første sending.',
           'Kanalen er tilgjengelig i hele perioden, uavhengig av hvor mye du sender.',
           'En kanal kan slettes fra dashbordet ved å trykke på krysset (✕). Du blir bedt om å bekrefte før sletting.',
         ],
@@ -147,9 +147,9 @@ export const translations = {
 
     // Plans
     'plan.days3': '3 dager',
-    'plan.days14': '14 dager',
-    'plan.price3': '199 kr',
-    'plan.price14': '349 kr',
+    'plan.days14': '7 dager',
+    'plan.price3': '249 kr',
+    'plan.price14': '399 kr',
 
     // Payment success
     'payment.successTitle': 'Betaling fullført!',
@@ -274,8 +274,8 @@ export const translations = {
       {
         tittel: '⏱️ Pricing and duration',
         innhold: [
-          '3 days — 199 NOK. The timer starts on first broadcast.',
-          '14 days — 349 NOK. The timer starts on first broadcast.',
+          '3 days — 249 NOK. The timer starts on first broadcast.',
+          '7 days — 399 NOK. The timer starts on first broadcast.',
           'The channel is available for the entire period, regardless of how much you broadcast.',
           'A channel can be deleted from the dashboard by tapping the ✕ button. You will be asked to confirm before deletion.',
         ],
@@ -315,9 +315,9 @@ export const translations = {
 
     // Plans
     'plan.days3': '3 days',
-    'plan.days14': '14 days',
-    'plan.price3': '199 NOK',
-    'plan.price14': '349 NOK',
+    'plan.days14': '7 days',
+    'plan.price3': '249 NOK',
+    'plan.price14': '399 NOK',
 
     // Payment success
     'payment.successTitle': 'Payment complete!',
