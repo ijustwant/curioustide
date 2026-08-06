@@ -1,5 +1,5 @@
 import { Platform } from 'react-native'
-import notifee, { AndroidImportance } from '@notifee/react-native'
+import notifee, { AndroidImportance, AndroidForegroundServiceType } from '@notifee/react-native'
 
 const CHANNEL_ID = 'broadcast'
 
@@ -28,7 +28,7 @@ export async function startBroadcastForegroundService(title: string, body: strin
       ongoing: true,
       colorized: true,
       smallIcon: 'ic_launcher',
-      foregroundServiceTypes: [1], // FOREGROUND_SERVICE_TYPE_MICROPHONE
+      foregroundServiceTypes: [AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_MICROPHONE],
     },
   })
 }
