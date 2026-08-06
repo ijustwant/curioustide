@@ -8,14 +8,47 @@ datasource db {
 }
 
 model User {
-  id              String               @id @default(uuid())
-  email           String               @unique
-  passwordHash    String
-  name            String?
-  createdAt       DateTime             @default(now())
-  channels        Channel[]
-  resetTokens     PasswordResetToken[]
-  receivedInvites ChannelInvite[]      @relation("ReceivedInvites")
+  id                   String                 @id @default(uuid())
+  email                String                 @unique
+  passwordHash         String
+  name                 String?
+  createdAt            DateTime               @default(now())
+  channels             Channel[]
+  resetTokens          PasswordResetToken[]
+  receivedInvites      ChannelInvite[]        @relation("ReceivedInvites")
+  pushTokens           PushToken[]
+  webPushSubscriptions WebPushSubscription[]
+  channelSubscriptions ChannelSubscription[]
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expoToken String   @unique
+  platform  String   // 'ios' | 'android'
+  createdAt DateTime @default(now())
+}
+
+model WebPushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+model ChannelSubscription {
+  id        String   @id @default(uuid())
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([channelId, userId])
 }
 
 model PasswordResetToken {
@@ -28,18 +61,30 @@ model PasswordResetToken {
 }
 
 model Channel {
-  id          String          @id @default(uuid())
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  channelKey  String          @unique
-  isActive    Boolean         @default(true)
-  plan        String?
-  expiresAt   DateTime?
-  firstSentAt DateTime?
-  createdAt   DateTime        @default(now())
-  events      Event[]
-  invites     ChannelInvite[]
+  id            String                 @id @default(uuid())
+  userId        String
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  channelKey    String                 @unique
+  isActive      Boolean                @default(true)
+  plan          String?
+  expiresAt     DateTime?
+  firstSentAt   DateTime?
+  createdAt     DateTime               @default(now())
+  events        Event[]
+  invites       ChannelInvite[]
+  subscriptions ChannelSubscription[]
+  clips         InterviewClip[]
+}
+
+model InterviewClip {
+  id         String   @id @default(uuid())
+  channelId  String
+  channel    Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  name       String
+  objectPath String
+  durationMs Int?
+  createdAt  DateTime @default(now())
 }
 
 model ChannelInvite {

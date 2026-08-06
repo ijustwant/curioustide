@@ -23,7 +23,10 @@
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_CONNECT"
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.WAKE_LOCK"
       ]
     },
     "ios": {
@@ -42,6 +45,16 @@
         "expo-av",
         {
           "microphonePermission": "CuriousTide trenger mikrofon for å sende lyd."
+        }
+      ],
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "@notifee/react-native",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/adaptive-icon.png",
+          "color": "#0f172a"
         }
       ]
     ],

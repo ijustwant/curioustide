@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
 import { startTestTone } from '../lib/testTone'
 import { useT } from '../i18n'
+import { subscribeToPush, isPushSupported } from '../lib/push'
 
 type Status = 'idle' | 'connecting' | 'listening' | 'error'
 
@@ -19,7 +20,20 @@ export default function ListenPage() {
   const [channelName, setChannelName] = useState('')
   const [error, setError] = useState('')
   const [testing, setTesting] = useState(false)
+  const [channelId, setChannelId] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
   const audioContainerRef = useRef<HTMLDivElement>(null)
+
+  async function notifyMe() {
+    if (!token || !channelId) return
+    try {
+      await subscribeToPush(token)
+      await api.subscribeToChannelNotifications(token, channelId)
+      setSubscribed(true)
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
 
   function testLyd() {
     if (testing) return
@@ -36,6 +50,7 @@ export default function ListenPage() {
     try {
       const res = await api.joinByKey(token, key.trim())
       setChannelName(res.channelName)
+      setChannelId(res.channelId)
 
       const lvUrl = import.meta.env.VITE_LIVEKIT_URL ?? 'ws://localhost:7880'
       const room = new Room({ adaptiveStream: true })
@@ -112,6 +127,18 @@ export default function ListenPage() {
                 {t('listen.listening')} <span className="font-bold ml-1">{channelName}</span>
               </div>
               <div ref={audioContainerRef} className="hidden" />
+              {isPushSupported() && (
+                subscribed ? (
+                  <p className="text-slate-400 text-sm">{t('listen.notifySubscribed')}</p>
+                ) : (
+                  <button
+                    onClick={notifyMe}
+                    className="w-full py-3 text-sm font-semibold rounded-2xl bg-slate-800 hover:bg-slate-700 transition active:scale-95"
+                  >
+                    {t('listen.notifyMe')}
+                  </button>
+                )
+              )}
               <button
                 onClick={testLyd}
                 disabled={testing}

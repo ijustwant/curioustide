@@ -12,6 +12,19 @@ import { useT } from '../i18n'
 
 type Status = 'idle' | 'connecting' | 'live' | 'error'
 
+// Lyttere kobler til med identity `${sub}:lst:${timestamp}` (se channels.ts) — skiller dem fra medtalere (`${sub}:spk`).
+function isListenerIdentity(identity: string): boolean {
+  return identity.includes(':lst:')
+}
+
+function countListeners(room: Room): number {
+  let n = 0
+  room.remoteParticipants.forEach((p) => {
+    if (isListenerIdentity(p.identity)) n++
+  })
+  return n
+}
+
 export default function SpeakPage() {
   const { channelId } = useParams<{ channelId: string }>()
   const navigate = useNavigate()
@@ -23,6 +36,10 @@ export default function SpeakPage() {
   const [testing, setTesting] = useState(false)
   const [channelKey, setChannelKey] = useState('')
   const [error, setError] = useState('')
+  const [notifyMsg, setNotifyMsg] = useState('')
+  const [notifying, setNotifying] = useState(false)
+  const [notifyResult, setNotifyResult] = useState('')
+  const [listenerCount, setListenerCount] = useState(0)
 
   useEffect(() => () => { roomRef.current?.disconnect(); stopTestTone() }, [])
 
@@ -48,12 +65,18 @@ export default function SpeakPage() {
       })
       roomRef.current = room
 
-      room.on(RoomEvent.Disconnected, () => setStatus('idle'))
+      room.on(RoomEvent.Disconnected, () => {
+        setStatus('idle')
+        setListenerCount(0)
+      })
+      room.on(RoomEvent.ParticipantConnected, () => setListenerCount(countListeners(room)))
+      room.on(RoomEvent.ParticipantDisconnected, () => setListenerCount(countListeners(room)))
 
       await room.connect(lvUrl, lvToken)
       const audioTrack = await createLocalAudioTrack()
       await room.localParticipant.publishTrack(audioTrack)
 
+      setListenerCount(countListeners(room))
       setStatus('live')
     } catch (err: any) {
       setError(err.message)
@@ -65,6 +88,22 @@ export default function SpeakPage() {
     roomRef.current?.disconnect()
     roomRef.current = null
     setStatus('idle')
+    setListenerCount(0)
+  }
+
+  async function sendNotification() {
+    if (!token || !channelId || !notifyMsg.trim() || notifying) return
+    setNotifying(true)
+    setNotifyResult('')
+    try {
+      const res = await api.notifyChannel(token, channelId, notifyMsg.trim())
+      setNotifyMsg('')
+      setNotifyResult(t('speak.notifySent').replace('{n}', String(res.recipients)))
+    } catch (err: any) {
+      setNotifyResult(err.message)
+    } finally {
+      setNotifying(false)
+    }
   }
 
   function toggleTest() {
@@ -118,7 +157,7 @@ export default function SpeakPage() {
             onClick={stopStream}
             className="w-full py-6 text-xl font-bold rounded-2xl bg-red-700 hover:bg-red-600 transition active:scale-95"
           >
-            {t('speak.stop')}
+            {t('speak.stop')} <span className="opacity-80">({listenerCount})</span>
           </button>
         )}
 
@@ -133,6 +172,29 @@ export default function SpeakPage() {
           {testing ? t('speak.testStop') : t('speak.testStart')}
         </button>
       </div>
+
+      {status === 'live' && (
+        <div className="w-full space-y-2 mt-6">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder={t('speak.notifyPlaceholder')}
+              value={notifyMsg}
+              onChange={(e) => setNotifyMsg(e.target.value)}
+              maxLength={200}
+              className="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-brand-500 focus:outline-none text-sm"
+            />
+            <button
+              onClick={sendNotification}
+              disabled={!notifyMsg.trim() || notifying}
+              className="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 transition text-sm font-semibold whitespace-nowrap"
+            >
+              {notifying ? t('speak.notifySending') : t('speak.notifySend')}
+            </button>
+          </div>
+          {notifyResult && <p className="text-slate-400 text-xs text-center">{notifyResult}</p>}
+        </div>
+      )}
 
       <p className="text-slate-500 text-xs mt-8 text-center">
         {t('speak.hint')}

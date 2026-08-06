@@ -7,8 +7,8 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'tommylarsen40@gmail.com')
   .split(',').map((e) => e.trim().toLowerCase())
 
 const PLANER: Record<string, { navn: string; dager: number; øre: number }> = {
-  '3dager': { navn: '3 dager', dager: 3, øre: 24900 },
-  '7dager': { navn: '7 dager', dager: 7, øre: 39900 },
+  '3dager': { navn: '3 dager', dager: 3, øre: 79500 },
+  '7dager': { navn: '7 dager', dager: 7, øre: 139500 },
 }
 
 function lagStripe() {

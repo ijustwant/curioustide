@@ -39,6 +39,7 @@ export default function ListenScreen({ navigation }: Props) {
 
       const res = await api.joinByKey(token, key.trim())
       setChannelName(res.channelName)
+      api.subscribeToChannelNotifications(token, res.channelId).catch((e) => console.warn('[push] abonnement feilet:', e))
 
       const room = new Room()
       roomRef.current = room

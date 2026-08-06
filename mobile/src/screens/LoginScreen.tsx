@@ -8,6 +8,7 @@ import type { RootStackParamList } from '../App'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/auth'
 import { useT } from '../i18n'
+import { registerForPushNotificationsAsync } from '../lib/push'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>
 
@@ -30,6 +31,7 @@ export default function LoginScreen({ navigation }: Props) {
           ? await api.login(email.trim(), password)
           : await api.register(email.trim(), password, name.trim() || undefined)
       setAuth(result.token, result.user)
+      registerForPushNotificationsAsync(result.token).catch((e) => console.warn('[push] registrering feilet:', e))
     } catch (err: any) {
       setError(err.message)
     } finally {

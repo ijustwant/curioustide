@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { generateLivekitToken } from '../services/livekit'
 import { sendTimerStartetEmail } from '../services/email'
+import { sendExpoPushNotifications, sendWebPushNotifications } from '../services/push'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? 'tommylarsen40@gmail.com')
   .split(',').map((e) => e.trim().toLowerCase())
 
-const PLAN_DAGER: Record<string, number> = { '3dager': 3, '14dager': 14 }
+const PLAN_DAGER: Record<string, number> = { '3dager': 3, '7dager': 7 }
 
 function erUtløpt(channel: { expiresAt: Date | null; plan: string | null }): boolean {
   if (!channel.expiresAt) return false       // admin eller ikke startet ennå
@@ -176,6 +177,54 @@ export default async function channelRoutes(app: FastifyInstance) {
       canPublish: false,
       canSubscribe: true,
     })
-    return { token, roomName: `ch_${channel.channelKey}`, channelName: channel.name }
+    return { token, roomName: `ch_${channel.channelKey}`, channelName: channel.name, channelId: channel.id }
+  })
+
+  // Lytter melder seg på push-varsler for en kanal
+  app.post('/:id/subscribe', async (request, reply) => {
+    const { sub } = request.user as { sub: string }
+    const { id } = request.params as { id: string }
+
+    const channel = await prisma.channel.findFirst({ where: { id, isActive: true } })
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' })
+
+    await prisma.channelSubscription.upsert({
+      where: { channelId_userId: { channelId: id, userId: sub } },
+      update: {},
+      create: { channelId: id, userId: sub },
+    })
+    return { ok: true }
+  })
+
+  // Sender (eier eller invitert medtaler) sender push-varsel til alle abonnenter på kanalen
+  app.post('/:id/notify', async (request, reply) => {
+    const { sub } = request.user as { sub: string }
+    const { id } = request.params as { id: string }
+    const body = z.object({ message: z.string().min(1).max(200) }).safeParse(request.body)
+    if (!body.success) return reply.status(400).send({ error: body.error.flatten() })
+
+    const channel = await prisma.channel.findFirst({ where: { id, isActive: true } })
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' })
+
+    const isOwner = channel.userId === sub
+    const invite = !isOwner
+      ? await prisma.channelInvite.findFirst({ where: { channelId: id, invitedUserId: sub, status: 'accepted' } })
+      : null
+    if (!isOwner && !invite) return reply.status(403).send({ error: 'Ikke tillatt' })
+
+    const subs = await prisma.channelSubscription.findMany({
+      where: { channelId: id },
+      include: { user: { include: { pushTokens: true, webPushSubscriptions: true } } },
+    })
+    const expoTokens = subs.flatMap((s) => s.user.pushTokens)
+    const webSubs = subs.flatMap((s) => s.user.webPushSubscriptions)
+
+    const payload = { title: channel.name, body: body.data.message }
+    await Promise.all([
+      sendExpoPushNotifications(prisma, expoTokens, payload),
+      sendWebPushNotifications(prisma, webSubs, payload),
+    ])
+
+    return { ok: true, recipients: subs.length }
   })
 }

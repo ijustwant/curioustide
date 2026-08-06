@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { registerGlobals } from '@livekit/react-native'
@@ -11,6 +12,8 @@ import ListenScreen from './screens/ListenScreen'
 import HelpScreen from './screens/HelpScreen'
 import { useAuthStore } from './store/auth'
 import { getLang } from './i18n'
+import { registerForegroundAudioService } from './lib/foregroundAudioService'
+import { registerForPushNotificationsAsync } from './lib/push'
 
 export type RootStackParamList = {
   Login: undefined
@@ -24,6 +27,7 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 registerGlobals()
+registerForegroundAudioService()
 
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['curioustide://'],
@@ -38,6 +42,10 @@ const linking: LinkingOptions<RootStackParamList> = {
 export default function App() {
   const token = useAuthStore((s) => s.token)
   const lang = getLang()
+
+  useEffect(() => {
+    if (token) registerForPushNotificationsAsync(token).catch((e) => console.warn('[push] registrering feilet:', e))
+  }, [token])
 
   const titles = {
     speak:  lang === 'en' ? 'Broadcast' : 'Send lyd',

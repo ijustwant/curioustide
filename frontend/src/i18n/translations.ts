@@ -52,6 +52,10 @@ export const translations = {
     'speak.testStop': '⏹ Stopp test-tone',
     'speak.hint': 'Gi kanalkoden til lyttere. Test-tonen spiller 2kHz hvert 1,5 sekund.',
     'speak.micError': 'Mikrofon er ikke tilgjengelig. Åpne siden via https:// eller http://localhost — Chrome blokkerer mikrofon på HTTP med IP-adresse.',
+    'speak.notifyPlaceholder': 'Melding til lytterne...',
+    'speak.notifySend': 'Send varsel',
+    'speak.notifySending': 'Sender...',
+    'speak.notifySent': 'Varsel sendt til {n} lytter(e)',
 
     // Listen
     'listen.title': '🎧 Lytt',
@@ -62,6 +66,8 @@ export const translations = {
     'listen.testSound': '🔊 Test lyd',
     'listen.testing': '🔊 Tester...',
     'listen.disconnect': '⏹ Koble fra',
+    'listen.notifyMe': '🔔 Varsle meg',
+    'listen.notifySubscribed': 'Du får varsler',
 
     // Help
     'help.title': 'Hjelp',
@@ -72,7 +78,7 @@ export const translations = {
       {
         tittel: '🎙️ Slik sender du lyd',
         innhold: [
-          'Opprett en kanal fra dashbordet og velg ønsket varighet (3 eller 14 dager).',
+          'Opprett en kanal fra dashbordet og velg ønsket varighet (3 eller 7 dager).',
           'Betaling skjer via Stripe. Etter betaling sendes du tilbake til appen, og kanalen er klar i listen.',
           'Trykk "Send" på kanalen for å starte sendingen.',
           'Koble til en Bluetooth-mikrofon for best lydkvalitet.',
@@ -106,8 +112,8 @@ export const translations = {
       {
         tittel: '⏱️ Priser og varighet',
         innhold: [
-          '3 dager — 249 kr. Timeren starter ved første sending.',
-          '7 dager — 399 kr. Timeren starter ved første sending.',
+          '3 dager — 795 kr. Timeren starter ved første sending.',
+          '7 dager — 1395 kr. Timeren starter ved første sending.',
           'Kanalen er tilgjengelig i hele perioden, uavhengig av hvor mye du sender.',
           'En kanal kan slettes fra dashbordet ved å trykke på krysset (✕). Du blir bedt om å bekrefte før sletting.',
         ],
@@ -148,8 +154,8 @@ export const translations = {
     // Plans
     'plan.days3': '3 dager',
     'plan.days14': '7 dager',
-    'plan.price3': '249 kr',
-    'plan.price14': '399 kr',
+    'plan.price3': '795 kr',
+    'plan.price14': '1395 kr',
 
     // Payment success
     'payment.successTitle': 'Betaling fullført!',
@@ -220,6 +226,10 @@ export const translations = {
     'speak.testStop': '⏹ Stop test tone',
     'speak.hint': 'Share the channel code with listeners. The test tone plays 2kHz every 1.5 seconds.',
     'speak.micError': 'Microphone not available. Open the page via https:// or http://localhost — Chrome blocks microphone on HTTP with an IP address.',
+    'speak.notifyPlaceholder': 'Message to listeners...',
+    'speak.notifySend': 'Send notification',
+    'speak.notifySending': 'Sending...',
+    'speak.notifySent': 'Notification sent to {n} listener(s)',
 
     // Listen
     'listen.title': '🎧 Listen',
@@ -230,6 +240,8 @@ export const translations = {
     'listen.testSound': '🔊 Test audio',
     'listen.testing': '🔊 Testing...',
     'listen.disconnect': '⏹ Disconnect',
+    'listen.notifyMe': '🔔 Notify me',
+    'listen.notifySubscribed': 'You will get notifications',
 
     // Help
     'help.title': 'Help',
@@ -240,7 +252,7 @@ export const translations = {
       {
         tittel: '🎙️ How to broadcast',
         innhold: [
-          'Create a channel from the dashboard and choose your desired duration (3 or 14 days).',
+          'Create a channel from the dashboard and choose your desired duration (3 or 7 days).',
           'Payment is handled via Stripe. After payment you are returned to the app and the channel appears in your list.',
           'Tap "Send" on the channel to start broadcasting.',
           'Connect a Bluetooth microphone for best audio quality.',
@@ -274,8 +286,8 @@ export const translations = {
       {
         tittel: '⏱️ Pricing and duration',
         innhold: [
-          '3 days — 249 NOK. The timer starts on first broadcast.',
-          '7 days — 399 NOK. The timer starts on first broadcast.',
+          '3 days — 795 NOK. The timer starts on first broadcast.',
+          '7 days — 1395 NOK. The timer starts on first broadcast.',
           'The channel is available for the entire period, regardless of how much you broadcast.',
           'A channel can be deleted from the dashboard by tapping the ✕ button. You will be asked to confirm before deletion.',
         ],
@@ -316,8 +328,8 @@ export const translations = {
     // Plans
     'plan.days3': '3 days',
     'plan.days14': '7 days',
-    'plan.price3': '249 NOK',
-    'plan.price14': '399 NOK',
+    'plan.price3': '795 NOK',
+    'plan.price14': '1395 NOK',
 
     // Payment success
     'payment.successTitle': 'Payment complete!',

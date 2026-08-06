@@ -55,7 +55,7 @@ export const api = {
     ),
 
   joinByKey: (token: string, key: string) =>
-    request<{ token: string; roomName: string; channelName: string }>(
+    request<{ token: string; roomName: string; channelName: string; channelId: string }>(
       `/channels/join/${key}`, { method: 'POST', body: JSON.stringify({}) }, token
     ),
 
@@ -98,4 +98,16 @@ export const api = {
 
   adminDeleteChannel: (token: string, userId: string, channelId: string) =>
     request<void>(`/admin/users/${userId}/channels/${channelId}`, { method: 'DELETE' }, token),
+
+  // Push-varsler
+  subscribeToPush: (token: string, endpoint: string, keys: { p256dh: string; auth: string }) =>
+    request<{ ok: boolean }>('/push/subscribe', { method: 'POST', body: JSON.stringify({ endpoint, keys }) }, token),
+
+  subscribeToChannelNotifications: (token: string, channelId: string) =>
+    request<{ ok: boolean }>(`/channels/${channelId}/subscribe`, { method: 'POST' }, token),
+
+  notifyChannel: (token: string, channelId: string, message: string) =>
+    request<{ ok: boolean; recipients: number }>(
+      `/channels/${channelId}/notify`, { method: 'POST', body: JSON.stringify({ message }) }, token
+    ),
 }

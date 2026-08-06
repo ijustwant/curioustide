@@ -57,7 +57,7 @@ export const api = {
     request<void>(`/channels/${id}`, { method: 'DELETE' }, token),
 
   joinByKey: (token: string, key: string) =>
-    request<{ token: string; roomName: string; channelName: string }>(
+    request<{ token: string; roomName: string; channelName: string; channelId: string }>(
       `/channels/join/${key}`, { method: 'POST', body: JSON.stringify({}) }, token
     ),
 
@@ -69,4 +69,55 @@ export const api = {
 
   acceptInvite: (token: string, inviteId: string) =>
     request<{ ok: boolean }>(`/channels/invites/${inviteId}/accept`, { method: 'POST' }, token),
+
+  registerPushToken: (token: string, expoToken: string, platform: 'ios' | 'android') =>
+    request<{ ok: boolean }>('/push/register', { method: 'POST', body: JSON.stringify({ expoToken, platform }) }, token),
+
+  subscribeToChannelNotifications: (token: string, channelId: string) =>
+    request<{ ok: boolean }>(`/channels/${channelId}/subscribe`, { method: 'POST' }, token),
+
+  notifyChannel: (token: string, channelId: string, message: string) =>
+    request<{ ok: boolean; recipients: number }>(
+      `/channels/${channelId}/notify`, { method: 'POST', body: JSON.stringify({ message }) }, token
+    ),
+
+  // Intervju-klipp
+  getClipUploadUrl: (token: string, channelId: string) =>
+    request<{ uploadUrl: string; objectPath: string }>(
+      `/channels/${channelId}/clips/upload-url`, { method: 'POST' }, token
+    ),
+
+  createClip: (token: string, channelId: string, objectPath: string, durationMs?: number, name?: string) =>
+    request<InterviewClip>(
+      `/channels/${channelId}/clips`,
+      { method: 'POST', body: JSON.stringify({ objectPath, durationMs, name }) },
+      token
+    ),
+
+  getClips: (token: string, channelId: string) =>
+    request<InterviewClip[]>(`/channels/${channelId}/clips`, {}, token),
+
+  renameClip: (token: string, channelId: string, clipId: string, name: string) =>
+    request<InterviewClip>(
+      `/channels/${channelId}/clips/${clipId}`,
+      { method: 'PATCH', body: JSON.stringify({ name }) },
+      token
+    ),
+
+  playClip: (token: string, channelId: string, clipId: string) =>
+    request<{ ok: boolean; ingressId?: string }>(
+      `/channels/${channelId}/clips/${clipId}/play`, { method: 'POST' }, token
+    ),
+
+  deleteClip: (token: string, channelId: string, clipId: string) =>
+    request<void>(`/channels/${channelId}/clips/${clipId}`, { method: 'DELETE' }, token),
+}
+
+export type InterviewClip = {
+  id: string
+  channelId: string
+  name: string
+  objectPath: string
+  durationMs: number | null
+  createdAt: string
 }

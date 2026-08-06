@@ -9,7 +9,10 @@ import eventRoutes from './routes/events'
 import paymentRoutes from './routes/payments'
 import notificationRoutes from './routes/notifications'
 import adminRoutes from './routes/admin'
+import pushRoutes from './routes/push'
+import clipRoutes from './routes/clips'
 import { deleteExpiredRecordings } from './services/recording'
+import { deleteExpiredChannels } from './services/channels'
 
 async function main() {
   const prisma = new PrismaClient()
@@ -62,12 +65,16 @@ async function main() {
   await app.register(paymentRoutes, { prefix: '/payments' })
   await app.register(notificationRoutes, { prefix: '/notifications' })
   await app.register(adminRoutes, { prefix: '/admin' })
+  await app.register(pushRoutes, { prefix: '/push' })
+  await app.register(clipRoutes, { prefix: '/channels' })
 
   app.get('/health', async () => ({ status: 'ok' }))
 
   cron.schedule('0 3 * * *', async () => {
     app.log.info('Running expired recording cleanup')
     await deleteExpiredRecordings(prisma)
+    app.log.info('Running expired channel cleanup')
+    await deleteExpiredChannels(prisma)
   })
 
   const port = Number(process.env.PORT ?? 4000)

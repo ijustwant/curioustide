@@ -32,3 +32,8 @@ export async function getDownloadUrl(objectPath: string): Promise<string> {
   const mc = getClient()
   return mc.presignedGetObject(BUCKET, objectPath, 24 * 60 * 60)
 }
+
+export async function getUploadUrl(objectPath: string): Promise<string> {
+  const mc = getClient()
+  return mc.presignedPutObject(BUCKET, objectPath, 60 * 60)
+}

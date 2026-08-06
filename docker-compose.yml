@@ -60,6 +60,18 @@ services:
       redis:
         condition: service_healthy
 
+  ingress:
+    image: livekit/ingress:latest
+    restart: unless-stopped
+    command: --config /etc/livekit/ingress.yaml
+    volumes:
+      - ./livekit/ingress.yaml:/etc/livekit/ingress.yaml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+
   backend:
     build:
       context: ./backend
@@ -88,6 +100,9 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:hjelp@curioustide.no}
     ports:
       - "4000:4000"
     depends_on:
@@ -103,6 +118,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
         VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://192.168.50.10:7880}
+        VITE_VAPID_PUBLIC_KEY: ${VITE_VAPID_PUBLIC_KEY:-}
     restart: unless-stopped
 
   nginx:

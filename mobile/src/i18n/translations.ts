@@ -44,6 +44,23 @@ export const translations = {
     'speak.testStart': '🔊  Test (2kHz)',
     'speak.testStop': '⏹  Stopp test',
     'speak.hint': 'Del kanal-ID med lyttere.\nTest-tonen spiller 2kHz hvert 1,5 sekund.',
+    'speak.notifTitle': 'CuriousTide',
+    'speak.notifBody': 'Sender lyd — trykk for å åpne appen',
+    'speak.notifyPlaceholder': 'Melding til lytterne...',
+    'speak.notifySend': 'Send varsel',
+    'speak.notifySending': 'Sender...',
+    'speak.notifySent': 'Varsel sendt til {n} lytter(e)',
+    'speak.clipsTitle': '🎙️ Intervju',
+    'speak.clipStart': 'Ta opp intervju',
+    'speak.clipStop': '⏹ Stopp opptak',
+    'speak.clipRecording': 'Tar opp...',
+    'speak.clipUploading': 'Laster opp...',
+    'speak.clipPlay': '▶ Spill av',
+    'speak.clipPlaying': '▶ Spilles av...',
+    'speak.clipDelete': 'Slett',
+    'speak.clipRename': 'Lagre navn',
+    'speak.clipEmpty': 'Ingen intervju-klipp ennå.',
+    'speak.clipStopsLive': 'Sendingen stoppes mens du tar opp intervjuet.',
 
     // Listen
     'listen.channelId': 'Kanal-ID',
@@ -60,7 +77,7 @@ export const translations = {
       {
         tittel: '🎙️ Slik sender du lyd',
         innhold: [
-          'Opprett en kanal fra dashbordet og velg ønsket varighet (3 eller 14 dager).',
+          'Opprett en kanal fra dashbordet og velg ønsket varighet (3 eller 7 dager).',
           'Betaling skjer via Stripe. Etter betaling sendes du tilbake til appen, og kanalen er klar i listen.',
           'Trykk "Send" på kanalen for å starte sendingen.',
           'Koble til en Bluetooth-mikrofon for best lydkvalitet.',
@@ -94,8 +111,8 @@ export const translations = {
       {
         tittel: '⏱️ Priser og varighet',
         innhold: [
-          '3 dager — 249 kr. Timeren starter ved første sending.',
-          '7 dager — 399 kr. Timeren starter ved første sending.',
+          '3 dager — 795 kr. Timeren starter ved første sending.',
+          '7 dager — 1395 kr. Timeren starter ved første sending.',
           'Kanalen er tilgjengelig i hele perioden, uavhengig av hvor mye du sender.',
           'En kanal kan slettes fra dashbordet ved å trykke på krysset (✕). Du blir bedt om å bekrefte før sletting.',
         ],
@@ -137,8 +154,8 @@ export const translations = {
     // Plans
     'plan.days3': '3 dager',
     'plan.days14': '7 dager',
-    'plan.price3': '249 kr',
-    'plan.price14': '399 kr',
+    'plan.price3': '795 kr',
+    'plan.price14': '1395 kr',
   },
 
   en: {
@@ -184,6 +201,23 @@ export const translations = {
     'speak.testStart': '🔊  Test (2kHz)',
     'speak.testStop': '⏹  Stop test',
     'speak.hint': 'Share the channel ID with listeners.\nTest tone plays 2kHz every 1.5 seconds.',
+    'speak.notifTitle': 'CuriousTide',
+    'speak.notifBody': 'Broadcasting — tap to open the app',
+    'speak.notifyPlaceholder': 'Message to listeners...',
+    'speak.notifySend': 'Send notification',
+    'speak.notifySending': 'Sending...',
+    'speak.notifySent': 'Notification sent to {n} listener(s)',
+    'speak.clipsTitle': '🎙️ Interviews',
+    'speak.clipStart': 'Record interview',
+    'speak.clipStop': '⏹ Stop recording',
+    'speak.clipRecording': 'Recording...',
+    'speak.clipUploading': 'Uploading...',
+    'speak.clipPlay': '▶ Play',
+    'speak.clipPlaying': '▶ Playing...',
+    'speak.clipDelete': 'Delete',
+    'speak.clipRename': 'Save name',
+    'speak.clipEmpty': 'No interview clips yet.',
+    'speak.clipStopsLive': 'The broadcast stops while you record the interview.',
 
     // Listen
     'listen.channelId': 'Channel ID',
@@ -200,7 +234,7 @@ export const translations = {
       {
         tittel: '🎙️ How to broadcast',
         innhold: [
-          'Create a channel from the dashboard and choose your desired duration (3 or 14 days).',
+          'Create a channel from the dashboard and choose your desired duration (3 or 7 days).',
           'Payment is handled via Stripe. After payment you are returned to the app and the channel appears in your list.',
           'Tap "Send" on the channel to start broadcasting.',
           'Connect a Bluetooth microphone for best audio quality.',
@@ -234,8 +268,8 @@ export const translations = {
       {
         tittel: '⏱️ Pricing and duration',
         innhold: [
-          '3 days — 249 NOK. The timer starts on first broadcast.',
-          '7 days — 399 NOK. The timer starts on first broadcast.',
+          '3 days — 795 NOK. The timer starts on first broadcast.',
+          '7 days — 1395 NOK. The timer starts on first broadcast.',
           'The channel is available for the entire period, regardless of how much you broadcast.',
           'A channel can be deleted from the dashboard by tapping the ✕ button. You will be asked to confirm before deletion.',
         ],
@@ -277,7 +311,7 @@ export const translations = {
     // Plans
     'plan.days3': '3 days',
     'plan.days14': '7 days',
-    'plan.price3': '249 NOK',
-    'plan.price14': '399 NOK',
+    'plan.price3': '795 NOK',
+    'plan.price14': '1395 NOK',
   },
 } as const satisfies Record<Lang, Record<string, unknown>>

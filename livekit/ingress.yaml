@@ -1,0 +1,13 @@
+# Må matche LIVEKIT_API_KEY/LIVEKIT_API_SECRET i .env og nøklene i livekit.yaml/livekit.prod.yaml
+api_key: devkey
+api_secret: devsecret1234567890abcdef12345678
+ws_url: ws://livekit:7880
+
+redis:
+  address: redis:6379
+
+logging:
+  level: info
+
+# Kun URL_INPUT (henter en lydfil fra en presignert MinIO-URL) er i bruk her —
+# RTMP/WHIP-porter trengs ikke med mindre push-baserte ingress-typer tas i bruk senere.

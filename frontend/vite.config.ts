@@ -7,15 +7,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        navigateFallbackDenylist: [/^\/download/],
-        runtimeCaching: [
-          {
-            urlPattern: /^\/api\//,
-            handler: 'NetworkOnly',
-          },
-        ],
-      },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       manifest: {
         name: 'CuriousTide',
         short_name: 'CuriousTide',
