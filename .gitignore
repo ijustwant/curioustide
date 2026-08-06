@@ -32,6 +32,7 @@ nginx/certs/
 
 # Downloads (APK-filer, store binærfiler)
 downloads/*.apk
+mobile/*.apk
 
 # Signeringsnøkler
 mobile/*.keystore
