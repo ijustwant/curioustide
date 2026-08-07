@@ -13,6 +13,9 @@ function getClient(): Minio.Client {
       useSSL: false,
       accessKey: process.env.MINIO_ACCESS_KEY ?? 'ctminio',
       secretKey: process.env.MINIO_SECRET_KEY ?? 'ctminiopassword',
+      // Uten en eksplisitt region gjør SDK-et et ekstra getBucketRegion-kall
+      // før hver signering, som feiler bak nginx-proxyen foran MinIO.
+      region: 'us-east-1',
     })
   }
   return client
@@ -32,6 +35,9 @@ function getPublicClient(): Minio.Client {
       useSSL,
       accessKey: process.env.MINIO_ACCESS_KEY ?? 'ctminio',
       secretKey: process.env.MINIO_SECRET_KEY ?? 'ctminiopassword',
+      // Uten en eksplisitt region gjør SDK-et et ekstra getBucketRegion-kall
+      // før hver signering, som feiler bak nginx-proxyen foran MinIO.
+      region: 'us-east-1',
     })
   }
   return publicClient
