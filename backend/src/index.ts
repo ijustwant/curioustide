@@ -13,12 +13,15 @@ import pushRoutes from './routes/push'
 import clipRoutes from './routes/clips'
 import { deleteExpiredRecordings } from './services/recording'
 import { deleteExpiredChannels } from './services/channels'
+import { ensureBucket } from './services/minio'
 
 async function main() {
   const prisma = new PrismaClient()
   const app = Fastify({ logger: true })
 
   app.decorate('prisma', prisma)
+
+  await ensureBucket()
 
   await app.register(cors, { origin: true, credentials: true })
 
