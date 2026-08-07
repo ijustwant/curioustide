@@ -85,6 +85,15 @@ export const translations = {
           'Timeren starter første gang du trykker "Send" — ikke ved opprettelse eller betaling.',
           'Du kan stoppe og starte sendingen igjen uten at timeren nullstilles.',
           'Du får en e-post når timeren starter, med dato for når kanalen utløper.',
+          'Du ser hvor mange som lytter akkurat nå, i parentes ved siden av "Stopp"-knappen.',
+        ],
+      },
+      {
+        tittel: '🔔 Varsle lyttere',
+        innhold: [
+          'Mens du sender, kan du skrive en melding og trykke "Send varsel" for å pushe den ut til alle som lytter.',
+          'Lyttere må trykke "Varsle meg" for å melde seg på varsler for kanalen — dette fungerer også i nettleseren, uten app.',
+          'Varselet kommer som en push-melding, selv om lytteren ikke har fanen åpen i det øyeblikket.',
         ],
       },
       {
@@ -259,6 +268,15 @@ export const translations = {
           'The timer starts the first time you tap "Send" — not at creation or payment.',
           'You can stop and restart the broadcast without resetting the timer.',
           'You will receive an email when the timer starts, with the date your channel expires.',
+          'You can see how many people are listening right now, in parentheses next to the "Stop" button.',
+        ],
+      },
+      {
+        tittel: '🔔 Notify listeners',
+        innhold: [
+          'While broadcasting, you can type a message and tap "Send notification" to push it to everyone listening.',
+          'Listeners must tap "Notify me" to opt in to notifications for the channel — this also works in the browser, no app needed.',
+          'The notification arrives as a push notification, even if the listener doesn\'t have the tab open at that moment.',
         ],
       },
       {

@@ -85,6 +85,27 @@ export const translations = {
           'Timeren starter første gang du trykker "Send" — ikke ved opprettelse eller betaling.',
           'Du kan stoppe og starte sendingen igjen uten at timeren nullstilles.',
           'Du får en e-post når timeren starter, med dato for når kanalen utløper.',
+          'Sendingen fortsetter selv om skjermen låses eller du bytter til en annen app.',
+          'Du ser hvor mange som lytter akkurat nå, i parentes ved siden av "Stopp"-knappen.',
+        ],
+      },
+      {
+        tittel: '🔔 Varsle lyttere',
+        innhold: [
+          'Mens du sender, kan du skrive en melding og trykke "Send varsel" for å pushe den ut til alle som lytter.',
+          'Lyttere må trykke "Varsle meg" i appen eller på nettsiden for å melde seg på varsler for kanalen.',
+          'Varselet kommer som en push-melding, selv om lytteren ikke har appen åpen i det øyeblikket.',
+        ],
+      },
+      {
+        tittel: '🎙️ Intervju-opptak',
+        innhold: [
+          'I en pause kan du trykke "Ta opp intervju" for å gjøre et lydopptak rett i appen.',
+          'Sendingen stoppes automatisk mens du tar opp, og starter igjen når du er ferdig.',
+          'Klippet lastes opp automatisk og får et standardnavn — trykk på navnet for å endre det.',
+          'Trykk "Spill av" for å spille klippet direkte inn i den pågående sendingen — alle lyttere hører det i sanntid.',
+          'Du kan avbryte avspillingen når som helst med "Stopp avspilling".',
+          'Inviterte medtalere ser og kan spille av de samme klippene, og listen oppdateres automatisk for alle.',
         ],
       },
       {
@@ -243,6 +264,27 @@ export const translations = {
           'The timer starts the first time you tap "Send" — not at creation or payment.',
           'You can stop and restart the broadcast without resetting the timer.',
           'You will receive an email when the timer starts, with the date your channel expires.',
+          'The broadcast keeps going even if the screen locks or you switch to another app.',
+          'You can see how many people are listening right now, in parentheses next to the "Stop" button.',
+        ],
+      },
+      {
+        tittel: '🔔 Notify listeners',
+        innhold: [
+          'While broadcasting, you can type a message and tap "Send notification" to push it to everyone listening.',
+          'Listeners must tap "Notify me" in the app or on the website to opt in to notifications for the channel.',
+          'The notification arrives as a push notification, even if the listener doesn\'t have the app open at that moment.',
+        ],
+      },
+      {
+        tittel: '🎙️ Interview recording',
+        innhold: [
+          'During a break, tap "Record interview" to make an audio recording right in the app.',
+          'The broadcast stops automatically while recording, and resumes once you\'re done.',
+          'The clip uploads automatically and gets a default name — tap the name to change it.',
+          'Tap "Play" to play the clip directly into the ongoing broadcast — all listeners hear it in real time.',
+          'You can stop playback at any time with "Stop playback".',
+          'Invited co-speakers see and can play the same clips, and the list updates automatically for everyone.',
         ],
       },
       {
