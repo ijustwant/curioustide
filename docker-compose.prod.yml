@@ -11,6 +11,9 @@ services:
     environment:
       NODE_ENV: production
       FRONTEND_URL: https://curioustide.no
+      MINIO_PUBLIC_ENDPOINT: curioustide.no
+      MINIO_PUBLIC_USE_SSL: "true"
+      MINIO_PUBLIC_PORT: "443"
 
   frontend:
     environment:
