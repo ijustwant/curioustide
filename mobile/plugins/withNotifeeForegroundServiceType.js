@@ -9,7 +9,10 @@ const SERVICE_NAME = 'app.notifee.core.ForegroundService'
 // krasjer hele appen idet sendingen startes.
 module.exports = function withNotifeeForegroundServiceType(config) {
   return withAndroidManifest(config, (config) => {
-    const app = config.modResults.manifest.application[0]
+    const manifest = config.modResults.manifest
+    manifest.$['xmlns:tools'] = 'http://schemas.android.com/tools'
+
+    const app = manifest.application[0]
     if (!app.service) app.service = []
 
     let service = app.service.find((s) => s.$['android:name'] === SERVICE_NAME)
@@ -20,6 +23,9 @@ module.exports = function withNotifeeForegroundServiceType(config) {
 
     service.$['android:foregroundServiceType'] = 'microphone'
     service.$['android:exported'] = service.$['android:exported'] ?? 'false'
+    // notifee sitt eget bibliotek deklarerer samme tjeneste med foregroundServiceType="shortService" —
+    // uten tools:replace nekter Gradles manifest-merger å overstyre verdien.
+    service.$['tools:replace'] = 'android:foregroundServiceType'
 
     return config
   })
