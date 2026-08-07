@@ -46,13 +46,19 @@ export default function SpeakScreen({ route, navigation }: Props) {
   const [editingClipId, setEditingClipId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [playingClipId, setPlayingClipId] = useState<string | null>(null)
+  const [playingIngressId, setPlayingIngressId] = useState<string | null>(null)
+  const playTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wasLiveBeforeClipRef = useRef(false)
   const [listenerCount, setListenerCount] = useState(0)
 
   useEffect(() => {
-    if (token) {
+    if (!token) return
+    const fetchClips = () => {
       api.getClips(token, channelId).then(setClips).catch((e) => console.warn('[clips] henting feilet:', e))
     }
+    fetchClips()
+    const interval = setInterval(fetchClips, 8000)
+    return () => clearInterval(interval)
   }, [token, channelId])
 
   useEffect(() => {
@@ -60,6 +66,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
       roomRef.current?.disconnect()
       stopTestTone()
       stopBroadcastForegroundService()
+      if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current)
     }
   }, [])
 
@@ -169,7 +176,9 @@ export default function SpeakScreen({ route, navigation }: Props) {
       const uploadResult = await FileSystem.uploadAsync(uploadUrl, uri, { httpMethod: 'PUT' })
       if (uploadResult.status >= 300) throw new Error(`Opplasting feilet (${uploadResult.status})`)
 
-      const clip = await api.createClip(token, channelId, objectPath, recStatus.durationMillis)
+      const now = new Date()
+      const defaultName = `Intervju ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+      const clip = await api.createClip(token, channelId, objectPath, recStatus.durationMillis, defaultName)
       setClips((prev) => [clip, ...prev])
     } catch (err: any) {
       Alert.alert('Error', err.message)
@@ -190,15 +199,36 @@ export default function SpeakScreen({ route, navigation }: Props) {
     }
   }
 
-  async function playClip(clipId: string) {
+  async function playClip(clip: InterviewClip) {
     if (!token || playingClipId) return
-    setPlayingClipId(clipId)
+    setPlayingClipId(clip.id)
     try {
-      await api.playClip(token, channelId, clipId)
+      const res = await api.playClip(token, channelId, clip.id)
+      setPlayingIngressId(res.ingressId ?? null)
+      if (clip.durationMs) {
+        playTimeoutRef.current = setTimeout(() => {
+          setPlayingClipId(null)
+          setPlayingIngressId(null)
+        }, clip.durationMs + 1000)
+      }
     } catch (err: any) {
       Alert.alert('Error', err.message)
-    } finally {
       setPlayingClipId(null)
+      setPlayingIngressId(null)
+    }
+  }
+
+  async function stopPlayingClip() {
+    if (!token || !playingClipId || !playingIngressId) return
+    if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current)
+    const clipId = playingClipId
+    const ingressId = playingIngressId
+    setPlayingClipId(null)
+    setPlayingIngressId(null)
+    try {
+      await api.stopClip(token, channelId, clipId, ingressId)
+    } catch (err: any) {
+      Alert.alert('Error', err.message)
     }
   }
 
@@ -323,11 +353,17 @@ export default function SpeakScreen({ route, navigation }: Props) {
                     >
                       <Text style={s.clipName} numberOfLines={1}>{clip.name}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => playClip(clip.id)} disabled={playingClipId === clip.id}>
-                      <Text style={s.clipAction}>
-                        {playingClipId === clip.id ? t('speak.clipPlaying') : t('speak.clipPlay')}
-                      </Text>
-                    </TouchableOpacity>
+                    {playingClipId === clip.id ? (
+                      <TouchableOpacity onPress={stopPlayingClip}>
+                        <Text style={s.clipStopAction}>{t('speak.clipStopPlaying')}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity onPress={() => playClip(clip)} disabled={!!playingClipId}>
+                        <Text style={[s.clipAction, !!playingClipId && s.clipActionDisabled]}>
+                          {t('speak.clipPlay')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </>
                 )}
               </View>
@@ -388,4 +424,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 6,
   },
   clipAction: { color: '#38bdf8', fontSize: 13, fontWeight: '700' },
+  clipActionDisabled: { opacity: 0.4 },
+  clipStopAction: { color: '#f87171', fontSize: 13, fontWeight: '700' },
 })

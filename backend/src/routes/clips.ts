@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { getUploadUrl, getDownloadUrl, deleteObject } from '../services/minio'
-import { playClipIntoRoom } from '../services/ingress'
+import { playClipIntoRoom, stopClipPlayback } from '../services/ingress'
 
 function kanStyre(channel: { userId: string }, sub: string, invite: { status: string } | null): boolean {
   return channel.userId === sub || invite?.status === 'accepted'
@@ -48,7 +48,9 @@ export default async function clipRoutes(app: FastifyInstance) {
     if (!channel) return reply.status(404).send({ error: 'Channel not found' })
     if (!harTilgang) return reply.status(403).send({ error: 'Ikke tillatt' })
 
-    const defaultNavn = `Intervju ${new Date().toLocaleDateString('no-NO')} ${new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })}`
+    // Klienten sender normalt med et navn generert i brukerens egen lokale tid/tidssone
+    // (se mobile/SpeakScreen.tsx) — dette er kun et nøytralt reserve-navn i UTC.
+    const defaultNavn = `Intervju ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`
 
     const clip = await prisma.interviewClip.create({
       data: {
@@ -108,6 +110,20 @@ export default async function clipRoutes(app: FastifyInstance) {
     const clipUrl = await getDownloadUrl(clip.objectPath)
     const ingress = await playClipIntoRoom(`ch_${channel.channelKey}`, clipUrl, email)
     return { ok: true, ingressId: ingress.ingressId }
+  })
+
+  app.post('/:id/clips/:clipId/stop', async (request, reply) => {
+    const { sub } = request.user as { sub: string }
+    const { id } = request.params as { id: string; clipId: string }
+    const body = z.object({ ingressId: z.string().min(1) }).safeParse(request.body)
+    if (!body.success) return reply.status(400).send({ error: body.error.flatten() })
+
+    const { channel, harTilgang } = await finnKanalOgTilgang(id, sub)
+    if (!channel) return reply.status(404).send({ error: 'Channel not found' })
+    if (!harTilgang) return reply.status(403).send({ error: 'Ikke tillatt' })
+
+    await stopClipPlayback(body.data.ingressId)
+    return { ok: true }
   })
 
   app.delete('/:id/clips/:clipId', async (request, reply) => {

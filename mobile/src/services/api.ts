@@ -111,6 +111,13 @@ export const api = {
 
   deleteClip: (token: string, channelId: string, clipId: string) =>
     request<void>(`/channels/${channelId}/clips/${clipId}`, { method: 'DELETE' }, token),
+
+  stopClip: (token: string, channelId: string, clipId: string, ingressId: string) =>
+    request<{ ok: boolean }>(
+      `/channels/${channelId}/clips/${clipId}/stop`,
+      { method: 'POST', body: JSON.stringify({ ingressId }) },
+      token
+    ),
 }
 
 export type InterviewClip = {

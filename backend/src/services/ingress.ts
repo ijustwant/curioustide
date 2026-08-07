@@ -24,3 +24,9 @@ export async function playClipIntoRoom(
     url: clipUrl,
   })
 }
+
+// Stopper en pågående klipp-avspilling (Ingress) før den er ferdig.
+export async function stopClipPlayback(ingressId: string): Promise<void> {
+  const ingress = getIngressClient()
+  await ingress.deleteIngress(ingressId)
+}
