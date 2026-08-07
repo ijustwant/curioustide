@@ -56,7 +56,8 @@
           "icon": "./assets/adaptive-icon.png",
           "color": "#0f172a"
         }
-      ]
+      ],
+      "./plugins/withNotifeeForegroundServiceType"
     ],
     "extra": {
       "eas": {
