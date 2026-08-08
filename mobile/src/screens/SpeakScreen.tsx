@@ -218,6 +218,33 @@ export default function SpeakScreen({ route, navigation }: Props) {
     }
   }
 
+  function confirmDeleteClip(clip: InterviewClip) {
+    if (!token) return
+    Alert.alert(
+      t('speak.clipDeleteTitle'),
+      t('speak.clipDeleteConfirm').replace('{name}', clip.name),
+      [
+        { text: t('invite.cancel'), style: 'cancel' },
+        {
+          text: t('speak.clipDelete'), style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.deleteClip(token, channelId, clip.id)
+              setClips((prev) => prev.filter((c) => c.id !== clip.id))
+              if (playingClipId === clip.id) {
+                if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current)
+                setPlayingClipId(null)
+                setPlayingIngressId(null)
+              }
+            } catch (err: any) {
+              Alert.alert('Error', err.message)
+            }
+          },
+        },
+      ]
+    )
+  }
+
   async function stopPlayingClip() {
     if (!token || !playingClipId || !playingIngressId) return
     if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current)
@@ -364,6 +391,9 @@ export default function SpeakScreen({ route, navigation }: Props) {
                         </Text>
                       </TouchableOpacity>
                     )}
+                    <TouchableOpacity onPress={() => confirmDeleteClip(clip)} style={s.clipDeleteBtn}>
+                      <Text style={s.clipDeleteAction}>✕</Text>
+                    </TouchableOpacity>
                   </>
                 )}
               </View>
@@ -426,4 +456,6 @@ const s = StyleSheet.create({
   clipAction: { color: '#38bdf8', fontSize: 13, fontWeight: '700' },
   clipActionDisabled: { opacity: 0.4 },
   clipStopAction: { color: '#f87171', fontSize: 13, fontWeight: '700' },
+  clipDeleteBtn: { paddingLeft: 4 },
+  clipDeleteAction: { color: '#64748b', fontSize: 16, fontWeight: '700' },
 })
