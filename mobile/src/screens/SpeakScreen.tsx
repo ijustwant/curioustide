@@ -117,7 +117,12 @@ export default function SpeakScreen({ route, navigation }: Props) {
       }
       if (selectedMicId !== null) {
         try {
-          AudioDevicePicker.setCommunicationDevice(selectedMicId)
+          const ok = AudioDevicePicker.setCommunicationDevice(selectedMicId)
+          if (!ok) {
+            const device = audioInputs.find((d) => d.id === selectedMicId)
+            console.warn('[Speak] Android avviste tvunget mikrofonvalg for id', selectedMicId, device)
+            Alert.alert('', t('speak.micForceFailed').replace('{name}', device?.name ?? String(selectedMicId)))
+          }
         } catch (e) {
           console.warn('[Speak] klarte ikke å tvinge valgt mikrofon:', e)
         }

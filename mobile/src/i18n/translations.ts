@@ -64,6 +64,7 @@ export const translations = {
     'speak.clipStopsLive': 'Sendingen stoppes mens du tar opp intervjuet.',
     'speak.micLabel': 'Mikrofon',
     'speak.micRefresh': '🔄 Oppdater',
+    'speak.micForceFailed': 'Klarte ikke å tvinge Android til å bruke «{name}». Enheten kan mangle støtte for dette på din telefon — sendingen fortsetter, men kan bruke en annen mikrofon.',
 
     // Listen
     'listen.channelId': 'Kanal-ID',
@@ -245,6 +246,7 @@ export const translations = {
     'speak.clipStopsLive': 'The broadcast stops while you record the interview.',
     'speak.micLabel': 'Microphone',
     'speak.micRefresh': '🔄 Refresh',
+    'speak.micForceFailed': 'Could not force Android to use "{name}". Your phone may not support this for this device — the broadcast will continue, but may use a different microphone.',
 
     // Listen
     'listen.channelId': 'Channel ID',
