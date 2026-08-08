@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["AudioDevicePickerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.audiodevicepicker.AudioDevicePickerModule"]
+  }
+}

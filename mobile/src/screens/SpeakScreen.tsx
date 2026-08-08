@@ -4,17 +4,16 @@ import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system'
 import { Room, RoomEvent, createLocalAudioTrack } from 'livekit-client'
 import { AudioSession } from '@livekit/react-native'
-import { mediaDevices } from '@livekit/react-native-webrtc'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api, type InterviewClip } from '../services/api'
 import { useAuthStore } from '../store/auth'
 import { useT } from '../i18n'
 import { startBroadcastForegroundService, stopBroadcastForegroundService } from '../lib/foregroundAudioService'
+import AudioDevicePicker, { type AudioDevice } from '../../modules/audio-device-picker'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Speak'>
 type Status = 'idle' | 'connecting' | 'live' | 'error'
-type AudioInputDevice = { deviceId: string; label: string; kind: string }
 
 const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://curioustide.no/livekit'
 
@@ -29,6 +28,16 @@ function countListeners(room: Room): number {
     if (isListenerIdentity(p.identity)) n++
   })
   return n
+}
+
+function micTypeIcon(type: AudioDevice['type']): string {
+  switch (type) {
+    case 'bluetooth': return '🔵'
+    case 'usb': return '🔌'
+    case 'wired': return '🎧'
+    case 'builtin': return '📱'
+    default: return '🎙️'
+  }
 }
 
 export default function SpeakScreen({ route, navigation }: Props) {
@@ -50,15 +59,14 @@ export default function SpeakScreen({ route, navigation }: Props) {
   const playTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wasLiveBeforeClipRef = useRef(false)
   const [listenerCount, setListenerCount] = useState(0)
-  const [audioInputs, setAudioInputs] = useState<AudioInputDevice[]>([])
-  const [selectedMicId, setSelectedMicId] = useState<string | null>(null)
+  const [audioInputs, setAudioInputs] = useState<AudioDevice[]>([])
+  const [selectedMicId, setSelectedMicId] = useState<number | null>(null)
 
-  async function loadAudioInputs() {
+  function loadAudioInputs() {
     try {
-      const devices = (await mediaDevices.enumerateDevices()) as AudioInputDevice[]
-      const inputs = devices.filter((d) => d.kind === 'audioinput')
+      const inputs = AudioDevicePicker.getAudioInputDevices()
       setAudioInputs(inputs)
-      setSelectedMicId((prev) => (prev && inputs.some((d) => d.deviceId === prev) ? prev : null))
+      setSelectedMicId((prev) => (prev !== null && inputs.some((d) => d.id === prev) ? prev : null))
     } catch (e) {
       console.warn('[Speak] fant ikke lydenheter:', e)
     }
@@ -66,9 +74,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
 
   useEffect(() => {
     loadAudioInputs()
-    const onDeviceChange = () => loadAudioInputs()
-    mediaDevices.addEventListener('devicechange', onDeviceChange)
-    return () => mediaDevices.removeEventListener('devicechange', onDeviceChange)
   }, [])
 
   useEffect(() => {
@@ -94,7 +99,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
     setStatus('connecting')
     try {
       await Audio.requestPermissionsAsync()
-      await loadAudioInputs()
+      loadAudioInputs()
       await AudioSession.startAudioSession()
       try {
         // Sikrer at lydøkten fortsetter i bakgrunnen/med låst skjerm på begge plattformer.
@@ -110,6 +115,13 @@ export default function SpeakScreen({ route, navigation }: Props) {
       } catch (e) {
         console.warn('[Speak] configureAudio ikke tilgjengelig i denne SDK-versjonen:', e)
       }
+      if (selectedMicId !== null) {
+        try {
+          AudioDevicePicker.setCommunicationDevice(selectedMicId)
+        } catch (e) {
+          console.warn('[Speak] klarte ikke å tvinge valgt mikrofon:', e)
+        }
+      }
       const { token: lvToken } = await api.getChannelToken(token, channelId, 'speaker')
 
       const room = new Room()
@@ -123,7 +135,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
 
       await room.connect(LIVEKIT_URL, lvToken)
       const audioTrack = await createLocalAudioTrack({
-        deviceId: selectedMicId ?? undefined,
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
@@ -145,6 +156,11 @@ export default function SpeakScreen({ route, navigation }: Props) {
     roomRef.current?.disconnect()
     roomRef.current = null
     AudioSession.stopAudioSession()
+    try {
+      AudioDevicePicker.clearCommunicationDevice()
+    } catch {
+      // Ignorer — enheten støtter kanskje ikke dette (krever Android 12+)
+    }
     await stopBroadcastForegroundService()
     setStatus('idle')
     setListenerCount(0)
@@ -306,17 +322,17 @@ export default function SpeakScreen({ route, navigation }: Props) {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.micRow}>
-            {audioInputs.map((d, i) => (
+            {audioInputs.map((d) => (
               <TouchableOpacity
-                key={d.deviceId || i}
-                style={[s.micChip, (selectedMicId ?? audioInputs[0]?.deviceId) === d.deviceId && s.micChipActive]}
-                onPress={() => setSelectedMicId(d.deviceId)}
+                key={d.id}
+                style={[s.micChip, (selectedMicId ?? audioInputs[0]?.id) === d.id && s.micChipActive]}
+                onPress={() => setSelectedMicId(d.id)}
               >
                 <Text
-                  style={[s.micChipText, (selectedMicId ?? audioInputs[0]?.deviceId) === d.deviceId && s.micChipTextActive]}
+                  style={[s.micChipText, (selectedMicId ?? audioInputs[0]?.id) === d.id && s.micChipTextActive]}
                   numberOfLines={1}
                 >
-                  {d.label || `${t('speak.micLabel')} ${i + 1}`}
+                  {micTypeIcon(d.type)} {d.name}
                 </Text>
               </TouchableOpacity>
             ))}
