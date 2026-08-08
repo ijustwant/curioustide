@@ -4,16 +4,17 @@ import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system'
 import { Room, RoomEvent, createLocalAudioTrack } from 'livekit-client'
 import { AudioSession } from '@livekit/react-native'
+import { mediaDevices } from '@livekit/react-native-webrtc'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../App'
 import { api, type InterviewClip } from '../services/api'
 import { useAuthStore } from '../store/auth'
-import { startTestTone, stopTestTone } from '../lib/testTone'
 import { useT } from '../i18n'
 import { startBroadcastForegroundService, stopBroadcastForegroundService } from '../lib/foregroundAudioService'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Speak'>
 type Status = 'idle' | 'connecting' | 'live' | 'error'
+type AudioInputDevice = { deviceId: string; label: string; kind: string }
 
 const LIVEKIT_URL = __DEV__ ? 'ws://192.168.50.10:7880' : 'wss://curioustide.no/livekit'
 
@@ -36,7 +37,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
   const t = useT()
   const roomRef = useRef<Room | null>(null)
   const [status, setStatus] = useState<Status>('idle')
-  const [testing, setTesting] = useState(false)
   const [notifyMsg, setNotifyMsg] = useState('')
   const [notifying, setNotifying] = useState(false)
   const recordingRef = useRef<Audio.Recording | null>(null)
@@ -50,6 +50,26 @@ export default function SpeakScreen({ route, navigation }: Props) {
   const playTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wasLiveBeforeClipRef = useRef(false)
   const [listenerCount, setListenerCount] = useState(0)
+  const [audioInputs, setAudioInputs] = useState<AudioInputDevice[]>([])
+  const [selectedMicId, setSelectedMicId] = useState<string | null>(null)
+
+  async function loadAudioInputs() {
+    try {
+      const devices = (await mediaDevices.enumerateDevices()) as AudioInputDevice[]
+      const inputs = devices.filter((d) => d.kind === 'audioinput')
+      setAudioInputs(inputs)
+      setSelectedMicId((prev) => (prev && inputs.some((d) => d.deviceId === prev) ? prev : null))
+    } catch (e) {
+      console.warn('[Speak] fant ikke lydenheter:', e)
+    }
+  }
+
+  useEffect(() => {
+    loadAudioInputs()
+    const onDeviceChange = () => loadAudioInputs()
+    mediaDevices.addEventListener('devicechange', onDeviceChange)
+    return () => mediaDevices.removeEventListener('devicechange', onDeviceChange)
+  }, [])
 
   useEffect(() => {
     if (!token) return
@@ -64,7 +84,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect()
-      stopTestTone()
       stopBroadcastForegroundService()
       if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current)
     }
@@ -75,6 +94,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
     setStatus('connecting')
     try {
       await Audio.requestPermissionsAsync()
+      await loadAudioInputs()
       await AudioSession.startAudioSession()
       try {
         // Sikrer at lydøkten fortsetter i bakgrunnen/med låst skjerm på begge plattformer.
@@ -103,6 +123,7 @@ export default function SpeakScreen({ route, navigation }: Props) {
 
       await room.connect(LIVEKIT_URL, lvToken)
       const audioTrack = await createLocalAudioTrack({
+        deviceId: selectedMicId ?? undefined,
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
@@ -259,16 +280,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
     }
   }
 
-  async function toggleTest() {
-    if (testing) {
-      await stopTestTone()
-      setTesting(false)
-    } else {
-      await startTestTone()
-      setTesting(true)
-    }
-  }
-
   return (
     <ScrollView style={s.root} contentContainerStyle={s.rootContent}>
       <View style={s.info}>
@@ -283,6 +294,33 @@ export default function SpeakScreen({ route, navigation }: Props) {
         <View style={s.liveBadge}>
           <View style={s.liveDot} />
           <Text style={s.liveText}>{t('speak.live')}</Text>
+        </View>
+      )}
+
+      {status === 'idle' && audioInputs.length > 1 && (
+        <View style={s.micSection}>
+          <View style={s.micHeaderRow}>
+            <Text style={s.micLabel}>{t('speak.micLabel')}</Text>
+            <TouchableOpacity onPress={loadAudioInputs}>
+              <Text style={s.micRefresh}>{t('speak.micRefresh')}</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.micRow}>
+            {audioInputs.map((d, i) => (
+              <TouchableOpacity
+                key={d.deviceId || i}
+                style={[s.micChip, (selectedMicId ?? audioInputs[0]?.deviceId) === d.deviceId && s.micChipActive]}
+                onPress={() => setSelectedMicId(d.deviceId)}
+              >
+                <Text
+                  style={[s.micChipText, (selectedMicId ?? audioInputs[0]?.deviceId) === d.deviceId && s.micChipTextActive]}
+                  numberOfLines={1}
+                >
+                  {d.label || `${t('speak.micLabel')} ${i + 1}`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -303,14 +341,6 @@ export default function SpeakScreen({ route, navigation }: Props) {
             <Text style={s.btnText}>{t('speak.stop')} <Text style={s.listenerCount}>({listenerCount})</Text></Text>
           </TouchableOpacity>
         )}
-
-        <TouchableOpacity
-          style={[s.btn, s.testBtn, testing && s.testBtnActive]}
-          onPress={toggleTest}
-          activeOpacity={0.8}
-        >
-          <Text style={s.btnText}>{testing ? t('speak.testStop') : t('speak.testStart')}</Text>
-        </TouchableOpacity>
       </View>
 
       {status === 'live' && (
@@ -418,12 +448,22 @@ const s = StyleSheet.create({
   liveBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#052e16', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 20, marginBottom: 24 },
   liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#4ade80' },
   liveText: { color: '#4ade80', fontWeight: '700', fontSize: 16 },
+  micSection: { width: '100%', marginBottom: 20 },
+  micHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  micLabel: { color: '#64748b', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
+  micRefresh: { color: '#38bdf8', fontSize: 12, fontWeight: '700' },
+  micRow: { flexGrow: 0 },
+  micChip: {
+    backgroundColor: '#0f172a', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 16,
+    borderWidth: 1, borderColor: '#1e293b', marginRight: 8, maxWidth: 180,
+  },
+  micChipActive: { backgroundColor: '#0284c7', borderColor: '#38bdf8' },
+  micChipText: { color: '#94a3b8', fontSize: 13, fontWeight: '600' },
+  micChipTextActive: { color: '#fff' },
   buttons: { width: '100%', gap: 16, marginBottom: 32 },
   btn: { borderRadius: 20, paddingVertical: 22, alignItems: 'center', justifyContent: 'center' },
   startBtn: { backgroundColor: '#0284c7' },
   stopBtn: { backgroundColor: '#b91c1c' },
-  testBtn: { backgroundColor: '#1e293b' },
-  testBtnActive: { backgroundColor: '#713f12' },
   disabled: { opacity: 0.5 },
   btnText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   listenerCount: { fontSize: 16, fontWeight: '600', opacity: 0.85 },

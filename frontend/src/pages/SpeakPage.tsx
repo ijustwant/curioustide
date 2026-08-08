@@ -7,7 +7,6 @@ import {
 } from 'livekit-client'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
-import { startTestTone, stopTestTone } from '../lib/testTone'
 import { useT } from '../i18n'
 
 type Status = 'idle' | 'connecting' | 'live' | 'error'
@@ -33,7 +32,6 @@ export default function SpeakPage() {
 
   const roomRef = useRef<Room | null>(null)
   const [status, setStatus] = useState<Status>('idle')
-  const [testing, setTesting] = useState(false)
   const [channelKey, setChannelKey] = useState('')
   const [error, setError] = useState('')
   const [notifyMsg, setNotifyMsg] = useState('')
@@ -41,7 +39,7 @@ export default function SpeakPage() {
   const [notifyResult, setNotifyResult] = useState('')
   const [listenerCount, setListenerCount] = useState(0)
 
-  useEffect(() => () => { roomRef.current?.disconnect(); stopTestTone() }, [])
+  useEffect(() => () => { roomRef.current?.disconnect() }, [])
 
   async function startStream() {
     if (!token || !channelId) return
@@ -106,16 +104,6 @@ export default function SpeakPage() {
     }
   }
 
-  function toggleTest() {
-    if (testing) {
-      stopTestTone()
-      setTesting(false)
-    } else {
-      startTestTone()
-      setTesting(true)
-    }
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 max-w-sm mx-auto">
       <button
@@ -160,17 +148,6 @@ export default function SpeakPage() {
             {t('speak.stop')} <span className="opacity-80">({listenerCount})</span>
           </button>
         )}
-
-        <button
-          onClick={toggleTest}
-          className={`w-full py-5 text-lg font-semibold rounded-2xl transition active:scale-95 ${
-            testing
-              ? 'bg-yellow-600 hover:bg-yellow-500'
-              : 'bg-slate-800 hover:bg-slate-700'
-          }`}
-        >
-          {testing ? t('speak.testStop') : t('speak.testStart')}
-        </button>
       </div>
 
       {status === 'live' && (

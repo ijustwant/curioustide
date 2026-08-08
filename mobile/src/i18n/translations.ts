@@ -41,9 +41,7 @@ export const translations = {
     'speak.start': '▶  Start',
     'speak.stop': '⏹  Stopp',
     'speak.connecting': 'Kobler til...',
-    'speak.testStart': '🔊  Test (2kHz)',
-    'speak.testStop': '⏹  Stopp test',
-    'speak.hint': 'Del kanal-ID med lyttere.\nTest-tonen spiller 2kHz hvert 1,5 sekund.',
+    'speak.hint': 'Del kanal-ID med lyttere.',
     'speak.notifTitle': 'CuriousTide',
     'speak.notifBody': 'Sender lyd — trykk for å åpne appen',
     'speak.notifyPlaceholder': 'Melding til lytterne...',
@@ -64,6 +62,8 @@ export const translations = {
     'speak.clipRename': 'Lagre navn',
     'speak.clipEmpty': 'Ingen intervju-klipp ennå.',
     'speak.clipStopsLive': 'Sendingen stoppes mens du tar opp intervjuet.',
+    'speak.micLabel': 'Mikrofon',
+    'speak.micRefresh': '🔄 Oppdater',
 
     // Listen
     'listen.channelId': 'Kanal-ID',
@@ -222,9 +222,7 @@ export const translations = {
     'speak.start': '▶  Start',
     'speak.stop': '⏹  Stop',
     'speak.connecting': 'Connecting...',
-    'speak.testStart': '🔊  Test (2kHz)',
-    'speak.testStop': '⏹  Stop test',
-    'speak.hint': 'Share the channel ID with listeners.\nTest tone plays 2kHz every 1.5 seconds.',
+    'speak.hint': 'Share the channel ID with listeners.',
     'speak.notifTitle': 'CuriousTide',
     'speak.notifBody': 'Broadcasting — tap to open the app',
     'speak.notifyPlaceholder': 'Message to listeners...',
@@ -245,6 +243,8 @@ export const translations = {
     'speak.clipRename': 'Save name',
     'speak.clipEmpty': 'No interview clips yet.',
     'speak.clipStopsLive': 'The broadcast stops while you record the interview.',
+    'speak.micLabel': 'Microphone',
+    'speak.micRefresh': '🔄 Refresh',
 
     // Listen
     'listen.channelId': 'Channel ID',
